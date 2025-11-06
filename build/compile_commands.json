@@ -1,0 +1,8 @@
+[
+{
+  "directory": "/home/gabriel/Documents/HolyC/fashion_MNIST/build",
+  "command": "/usr/bin/g++ -DUSE_C10D_GLOO -DUSE_DISTRIBUTED -DUSE_RPC -DUSE_TENSORPIPE -isystem /home/gabriel/libs/libtorch/include -isystem /home/gabriel/libs/libtorch/include/torch/csrc/api/include -g -o CMakeFiles/fashion_MNIST.dir/src/custom_network/main.cpp.o -c /home/gabriel/Documents/HolyC/fashion_MNIST/src/custom_network/main.cpp",
+  "file": "/home/gabriel/Documents/HolyC/fashion_MNIST/src/custom_network/main.cpp",
+  "output": "/home/gabriel/Documents/HolyC/fashion_MNIST/build/CMakeFiles/fashion_MNIST.dir/src/custom_network/main.cpp.o"
+}
+]

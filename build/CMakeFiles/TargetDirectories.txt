@@ -1,0 +1,3 @@
+/home/gabriel/Documents/HolyC/fashion_MNIST/build/CMakeFiles/fashion_MNIST.dir
+/home/gabriel/Documents/HolyC/fashion_MNIST/build/CMakeFiles/edit_cache.dir
+/home/gabriel/Documents/HolyC/fashion_MNIST/build/CMakeFiles/rebuild_cache.dir
