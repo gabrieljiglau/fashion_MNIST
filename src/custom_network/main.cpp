@@ -1,18 +1,18 @@
+#include <torch/data/dataloader.h>
+#include <torch/data/dataloader_options.h>
+#include <torch/data/transforms/stack.h>
 #include <torch/data/transforms/tensor.h>
+#include "include/data_loaders.hpp"
 #include <torch/torch.h>
 #include <iostream>
 
 
 int main(){
 
-    torch::Tensor tensor = torch::rand({2, 3});
-    std::cout << tensor << std::endl;
-    
-    std::string dataPath = "~/gabriel/data/";
-    auto trainSet = torch::data::datasets::MNIST(
-                        dataPath,
-                        torch::data::datasets::MNIST::Mode::kTrain)
-                        .map(torch::data::transforms::Normalize<>(0.5, 0.5))
-                        .map(torch::data::transforms::Stack<>()); 
+    //std::string dataPath = "/home/gabriel/Documents/HolyC/fashion_MNIST/data/";
+    std::string dataPath = std::getenv("DATA_PATH"); // full path to the dataset
+    int batchSize = 64;
+    int numWorkers = 3; 
+    auto [trainSet, testSet] = loadMnist(dataPath, batchSize, numWorkers);
     
 }
