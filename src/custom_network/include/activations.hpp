@@ -1,6 +1,4 @@
 #pragma once
-
-#include "losses.hpp"
 #include <Eigen/Dense>
 
 enum activationType{
@@ -11,14 +9,7 @@ enum activationType{
 
 class ActivationFunction{
 
-    activationType actName;
-
-    public:
-    ActivationFunction(const activationType type) : actName(type) {}
-
-    Eigen::MatrixXd activateHidden(Eigen::MatrixXd z);
-
-    Eigen::MatrixXd acivateOutput(Eigen::MatrixXd z, Loss l);
+    activationType activationName;
 
     static Eigen::MatrixXd softmax(Eigen::MatrixXd &z);
 
@@ -26,4 +17,14 @@ class ActivationFunction{
 
     static Eigen::MatrixXd sigmoid(Eigen::MatrixXd &z);
 
+    static Eigen::MatrixXd reluDerivative(Eigen::MatrixXd &z);
+
+    static Eigen::MatrixXd sigmoidDerivative(Eigen::MatrixXd &z);
+
+    public:
+    ActivationFunction(const activationType type) : activationName(type) {}
+
+    Eigen::MatrixXd activateHidden(Eigen::MatrixXd &z);
+
+    Eigen::MatrixXd derivative(Eigen::MatrixXd &z);
 };
