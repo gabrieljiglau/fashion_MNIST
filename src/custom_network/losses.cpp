@@ -43,13 +43,3 @@ float Loss::totalLoss(Eigen::VectorXd activation, Eigen::VectorXd target){
     // fallback; to check when calling
     return 0;
 }
-
-Eigen::MatrixXd Loss::lossLastLayer(Eigen::MatrixXd activation, lossType l){
-
-
-}
-
-Eigen::MatrixXd Loss:lossHidden(Eigen::MatrixXd lossNext, Eigen::MatrixXd weightsNext, Eigen::MatrixXd activationDerivative){
-
-    
-}

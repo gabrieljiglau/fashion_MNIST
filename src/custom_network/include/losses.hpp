@@ -20,9 +20,5 @@ class Loss{
     public:
     Loss(lossType lossFunction): lossFunction(lossFunction) {};
 
-    Eigen::MatrixXd lossLastLayer(Eigen::MatrixXd activation, lossType l);
-
-    Eigen::MatrixXd lossHidden(Eigen::MatrixXd lossNext, Eigen::MatrixXd weightsNext, Eigen::MatrixXd activationDerivative);
-
     float totalLoss(Eigen::VectorXd activation, Eigen::VectorXd target);
 };

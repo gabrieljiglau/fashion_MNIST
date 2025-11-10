@@ -81,13 +81,13 @@ Eigen::MatrixXd ActivationFunction::sigmoidDerivative(Eigen::MatrixXd &z){
     return sigma * oneMinusSigma;
 }  
 
-Eigen::MatrixXd ActivationFunction::activateHidden(Eigen::MatrixXd &z){
+Eigen::MatrixXd ActivationFunction::activateHidden(Eigen::MatrixXd &z, activationType aType){
 
-    if (this->activationName == RELU){
+    if (aType == RELU){
         return relu(z);
     }
 
-    if (this->activationName == SIGMOID){
+    if (aType == SIGMOID){
         return sigmoid(z);
     }
 
@@ -95,13 +95,13 @@ Eigen::MatrixXd ActivationFunction::activateHidden(Eigen::MatrixXd &z){
     return Eigen::MatrixXd::Ones(z.rows(), z.cols());
 }
 
-Eigen::MatrixXd ActivationFunction::derivative(Eigen::MatrixXd &z){
+Eigen::MatrixXd ActivationFunction::derivative(Eigen::MatrixXd &z, activationType aType){
 
-    if (this->activationName == RELU){
+    if (aType == RELU){
         return reluDerivative(z);
     }
 
-    if (this->activationName == SIGMOID){
+    if (aType == SIGMOID){
         return sigmoid(z);
     }
 

@@ -5,9 +5,11 @@
 #include <torch/torch.h>
 #include <Eigen/Dense>
 #include <iostream>
-#include "include/activations.hpp"
 #include "include/data_loaders.hpp"
-
+#include "include/activations.hpp"
+#include "include/losses.hpp"
+#include "include/utils.hpp"
+#include "include/network.hpp"
 
 int main(){
 
