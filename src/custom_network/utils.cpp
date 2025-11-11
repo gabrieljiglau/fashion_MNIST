@@ -15,7 +15,7 @@ Eigen::MatrixXd lossLastLayer(Eigen::MatrixXd activation, Eigen::MatrixXd activa
 
     if (lossName == CROSS_ENTROPY){
         if (activationName == SOFTMAX){
-        return activation - target;
+            return activation - target;
         }
     }
 
