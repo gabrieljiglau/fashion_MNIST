@@ -1,4 +1,5 @@
 #include "include/network.hpp"
+#include "include/activations.hpp"
 #include <Eigen/Core>
 #include <random>
 #include <iostream>
@@ -54,12 +55,40 @@ void FeedForwardNetwork::addLayer(const int numNeurons1, const int numNeurons2){
     this->biases.push_back(Eigen::VectorXd::Zero(numNeurons1));
 }
 
-void FeedForwardNetwork::addActivation(ActivationFunction activationType){
-    this->activationFunctions.push_back(activationType);
+void FeedForwardNetwork::addActivation(activationType actName){
+
+    this->activationFunctions.push_back(ActivationFunction(actName));
+}
+
+Eigen::MatrixXd FeedForwardNetwork::forward(std::vector<Eigen::VectorXd> xIn){
+
+    // prepare the mini batch
+    Eigen::MatrixXd xBatch = Eigen::MatrixXd(xIn[0].rows(), xIn.size());
+    for (int i = 0; i < xBatch.rows(); i++){
+        xBatch.col(i) = xIn[i]; // by default VectorXd is a column  vector
+    }
+
+    // layer 0: do nothing
+    Eigen::MatrixXd prevActivations = this->weights[0];
+    for (int layerIdx = 1; layerIdx < this->numLayers; layerIdx++){
+        Eigen::MatrixXd z = this->weights[layerIdx] * prevActivations + this->biases[layerIdx];
+        ActivationFunction actFunction = this->activationFunctions[layerIdx];
+        prevActivations = actFunction.activateHidden(z);
+    }
+
+    return prevActivations;
+}
+
+
+Eigen::MatrixXd FeedForwardNetwork::backward(){
+
+    // last layer: total loss, computable directly
+    for (int layerIdx = this->numLayers - 1; layerIdx > 1; layerIdx--){
+
+    }
 
 }
 
-Eigen::MatrixXd FeedForwardNetwork::forward(Eigen::VectorXd xIn){
-
-    
+void FeedForwardNetwork::train(std::vector<Eigen::VectorXd> xTrain, std::vector<Eigen::VectorXd> yTrain){
+    checkModel();
 }

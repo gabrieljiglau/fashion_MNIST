@@ -8,7 +8,6 @@
 class FeedForwardNetwork{
 
     int numLayers = 0;
-    int miniBatchSize = 0;
     float learningRate;
     float weightDecay;
 
@@ -24,19 +23,18 @@ class FeedForwardNetwork{
 
     public:
 
-    FeedForwardNetwork(float learningRate, float weightDecay, int miniBatchSize): 
-                       learningRate(learningRate), weightDecay(weightDecay), miniBatchSize(miniBatchSize) {};
+    FeedForwardNetwork(float learningRate, float weightDecay): learningRate(learningRate), weightDecay(weightDecay) {};
     ~FeedForwardNetwork(); // destructor cannot have any parameters
 
     void addLayer(const int numNeurons1, const int numNeurons2);
     
-    void addActivation(ActivationFunction activationType);
+    void addActivation(activationType actName);
     
-    Eigen::MatrixXd forward(Eigen::VectorXd xIn);
+    Eigen::MatrixXd forward(std::vector<Eigen::VectorXd>);
 
     Eigen::MatrixXd backward();
 
-    void train(Eigen::MatrixXd xTrain, Eigen::VectorXd yTrain);
+    void train(std::vector<Eigen::VectorXd> xTrain, std::vector<Eigen::VectorXd> yTrain);
 
     void predict(Eigen::VectorXd xTest);
 };

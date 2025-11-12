@@ -9,6 +9,8 @@ enum activationType{
 
 class ActivationFunction{
 
+    activationType actName;
+
     static Eigen::MatrixXd softmax(Eigen::MatrixXd &z);
 
     static Eigen::MatrixXd relu(Eigen::MatrixXd &z);
@@ -21,7 +23,9 @@ class ActivationFunction{
 
     public:
 
-    static Eigen::MatrixXd activateHidden(Eigen::MatrixXd &z, activationType aType);
+    ActivationFunction(activationType actName): actName(actName) {};
 
-    static Eigen::MatrixXd derivative(Eigen::MatrixXd &z, activationType aType);
+    Eigen::MatrixXd activateHidden(Eigen::MatrixXd &z);
+
+    Eigen::MatrixXd derivative(Eigen::MatrixXd &z);
 };
