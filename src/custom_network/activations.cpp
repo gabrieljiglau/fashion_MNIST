@@ -69,7 +69,7 @@ Eigen::MatrixXd ActivationFunction::sigmoidDerivative(Eigen::MatrixXd &z){
     d_sigma/d_z = sigma(x)(1 - sigma(x))
     */
 
-    Eigen::MatrixXd sigma = sigmoid(z);
+    Eigen::MatrixXd sigma = z;
     Eigen::MatrixXd oneMinusSigma = sigma;
 
     for (int i = 0; i < z.rows(); i++){

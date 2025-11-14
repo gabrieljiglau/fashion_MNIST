@@ -6,7 +6,7 @@
 float Loss::crossEntropy(Eigen::VectorXd activation, Eigen::VectorXd target){
     
     /*
-    activation  -> the output from the activation funtion (i.e. softmax)
+    activation  -> the output from the activation funtion (i.e. softmax, relu)
     targetIndex -> target in one-hot encoding form
     */
 

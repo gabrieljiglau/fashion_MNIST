@@ -1,16 +1,16 @@
 #include <Eigen/Dense>
 #include "include/utils.hpp"
+#include "include/activations.hpp"
 
 
 Eigen::MatrixXd lossLastLayer(Eigen::MatrixXd activation, Eigen::MatrixXd activationPrev, Eigen::VectorXd target, 
     activationType activationName, lossType lossName){
 
-
-    // when using mini bacthes, the activations are matrices
-
+    // !! these need to be changed, the networks works on mini batches now !
     if (lossName == MSE){
         Eigen::MatrixXd dL = activation - target;// d_L / d_a
-        return dL * ActivationFunction::derivative(activation, activationName);
+        ActivationFunction actFunction = ActivationFunction(activationName);
+        return dL * actFunction.derivative(activation);
     }
 
     if (lossName == CROSS_ENTROPY){
