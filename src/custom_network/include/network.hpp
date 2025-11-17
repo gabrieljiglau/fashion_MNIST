@@ -15,9 +15,8 @@ class FeedForwardNetwork{
     std::vector<ActivationFunction> activationFunctions;
     std::vector<Eigen::MatrixXd> weights;
     std::vector<Eigen::VectorXd> biases;
-    std::vector<Eigen::MatrixXd> activations;
 
-    lossType lossFunction;
+    Loss lossFunction;
 
     void checkModel();
 
@@ -25,17 +24,17 @@ class FeedForwardNetwork{
 
     public:
 
-    FeedForwardNetwork(float learningRate, float weightDecay, int miniBatchSize): 
-                       learningRate(learningRate), weightDecay(weightDecay), miniBatchSize(miniBatchSize) {};
+    FeedForwardNetwork(float learningRate, float weightDecay, Loss lossFunction, int miniBatchSize): 
+                       learningRate(learningRate), weightDecay(weightDecay), lossFunction(lossFunction), miniBatchSize(miniBatchSize) {};
     ~FeedForwardNetwork(); // destructor cannot have any parameters
 
     void addLayer(const int numNeurons1, const int numNeurons2);
     
     void addActivation(activationType actName);
     
-    void forward(std::vector<Eigen::VectorXd>);
+    Eigen::MatrixXd forward(Eigen::MatrixXd xBatch);
 
-    std::vector<Eigen::MatrixXd> backward(Eigen::MatrixXd xBatch, Eigen::MatrixXd yOneHot, int batchSize);
+    void backward(Eigen::MatrixXd xBatch, Eigen::MatrixXd yOneHot, Eigen::MatrixXd activations, int batchSize);
 
     void train(std::vector<Eigen::VectorXd> xTrain, std::vector<Eigen::VectorXd> yTrain, int epochs=10);
 

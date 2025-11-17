@@ -3,7 +3,7 @@
 #include "include/losses.hpp"
 
 
-float Loss::crossEntropy(Eigen::VectorXd activation, Eigen::VectorXd target){
+float Loss::crossEntropy(Eigen::MatrixXd activation, Eigen::MatrixXd target){
     
     /*
     activation  -> the output from the activation funtion (i.e. softmax, relu)
@@ -21,7 +21,7 @@ float Loss::crossEntropy(Eigen::VectorXd activation, Eigen::VectorXd target){
     return -std::log10(activation(targetIndex));
 }
 
-float Loss::mse(Eigen::VectorXd activation, Eigen::VectorXd target){
+float Loss::mse(Eigen::MatrixXd activation, Eigen::MatrixXd target){
 
     float error = 0;
     for (int i = 0; i < activation.size(); i++){
@@ -30,7 +30,7 @@ float Loss::mse(Eigen::VectorXd activation, Eigen::VectorXd target){
     return error;
 }
 
-float Loss::totalLoss(Eigen::VectorXd activation, Eigen::VectorXd target){
+float Loss::totalLoss(Eigen::MatrixXd activation, Eigen::MatrixXd target){
 
     if (this->lossFunction == MSE){
         return mse(activation, target);
@@ -42,4 +42,8 @@ float Loss::totalLoss(Eigen::VectorXd activation, Eigen::VectorXd target){
 
     // fallback; to check when calling
     return 0;
+}
+
+lossType Loss::getLossType(){
+    return this->lossFunction;
 }

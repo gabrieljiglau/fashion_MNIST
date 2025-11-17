@@ -4,7 +4,9 @@
 #include "include/activations.hpp"
 
 
-Eigen::MatrixXd ActivationFunction::softmax(Eigen::MatrixXd &z){
+// TO-DO: modify the loops to support Eigen::Vectors only
+
+Eigen::VectorXd ActivationFunction::softmax(Eigen::VectorXd z){
 
     // by default, the operations performed by Eigen are on matrices
     Eigen::MatrixXd zExp = (z.array().colwise() - z.rowwise().maxCoeff().array()).exp().matrix();
@@ -19,7 +21,7 @@ Eigen::MatrixXd ActivationFunction::softmax(Eigen::MatrixXd &z){
     return zExp;
 }
 
-Eigen::MatrixXd ActivationFunction::relu(Eigen::MatrixXd &z){
+Eigen::VectorXd ActivationFunction::relu(Eigen::VectorXd z){
 
     for (int i = 0; i < z.rows(); i++){
         for (int j = 0; j < z.cols(); j++){
@@ -30,7 +32,7 @@ Eigen::MatrixXd ActivationFunction::relu(Eigen::MatrixXd &z){
     return z;
 }
 
-Eigen::MatrixXd ActivationFunction::sigmoid(Eigen::MatrixXd &z){
+Eigen::VectorXd ActivationFunction::sigmoid(Eigen::VectorXd z){
 
     /*
     sigma(x) = 1 / (1 + e^-x); equivalent to e^x / (1 + e^x)
@@ -47,7 +49,7 @@ Eigen::MatrixXd ActivationFunction::sigmoid(Eigen::MatrixXd &z){
     return zExp;
 }
 
-Eigen::MatrixXd ActivationFunction::reluDerivative(Eigen::MatrixXd &z){
+Eigen::VectorXd ActivationFunction::reluDerivative(Eigen::VectorXd z){
 
     /*
     d_relu/d_z = 1 if z > 0 else 0
@@ -63,7 +65,7 @@ Eigen::MatrixXd ActivationFunction::reluDerivative(Eigen::MatrixXd &z){
 }
 
 
-Eigen::MatrixXd ActivationFunction::sigmoidDerivative(Eigen::MatrixXd &z){
+Eigen::VectorXd ActivationFunction::sigmoidDerivative(Eigen::VectorXd z){
     
     /*
     d_sigma/d_z = sigma(x)(1 - sigma(x))
@@ -81,7 +83,7 @@ Eigen::MatrixXd ActivationFunction::sigmoidDerivative(Eigen::MatrixXd &z){
     return sigma * oneMinusSigma;
 }  
 
-Eigen::MatrixXd ActivationFunction::activateHidden(Eigen::MatrixXd &z){
+Eigen::VectorXd ActivationFunction::activateHidden(Eigen::VectorXd z){
 
     if (this->actName == RELU){
         return relu(z);
@@ -95,7 +97,7 @@ Eigen::MatrixXd ActivationFunction::activateHidden(Eigen::MatrixXd &z){
     return Eigen::MatrixXd::Ones(z.rows(), z.cols());
 }
 
-Eigen::MatrixXd ActivationFunction::derivative(Eigen::MatrixXd &z){
+Eigen::VectorXd ActivationFunction::derivative(Eigen::VectorXd z){
 
     if (this->actName == RELU){
         return reluDerivative(z);
@@ -106,5 +108,5 @@ Eigen::MatrixXd ActivationFunction::derivative(Eigen::MatrixXd &z){
     }
 
     // fallback; to check when calling
-    return Eigen::MatrixXd::Ones(z.rows(), z.cols());
+    return Eigen::VectorXd::Ones(z.size());
 }

@@ -13,12 +13,14 @@ class Loss{
 
     lossType lossFunction;
 
-    static float mse(Eigen::VectorXd activation, Eigen::VectorXd target);
+    static float mse(Eigen::MatrixXd activation, Eigen::MatrixXd target);
 
-    static float crossEntropy(Eigen::VectorXd activation, Eigen::VectorXd target);
+    static float crossEntropy(Eigen::MatrixXd activation, Eigen::MatrixXd target);
 
     public:
     Loss(lossType lossFunction): lossFunction(lossFunction) {};
 
-    float totalLoss(Eigen::VectorXd activation, Eigen::VectorXd target);
+    float totalLoss(Eigen::MatrixXd activation, Eigen::MatrixXd target);
+
+    lossType getLossType();
 };

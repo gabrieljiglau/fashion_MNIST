@@ -11,21 +11,21 @@ class ActivationFunction{
 
     activationType actName;
 
-    static Eigen::MatrixXd softmax(Eigen::MatrixXd &z);
+    static Eigen::VectorXd softmax(Eigen::VectorXd z);
 
-    static Eigen::MatrixXd relu(Eigen::MatrixXd &z);
+    static Eigen::VectorXd relu(Eigen::VectorXd z);
 
-    static Eigen::MatrixXd sigmoid(Eigen::MatrixXd &z);
+    static Eigen::VectorXd sigmoid(Eigen::VectorXd z);
 
-    static Eigen::MatrixXd reluDerivative(Eigen::MatrixXd &z);
+    static Eigen::VectorXd reluDerivative(Eigen::VectorXd z);
 
-    static Eigen::MatrixXd sigmoidDerivative(Eigen::MatrixXd &z);
+    static Eigen::VectorXd sigmoidDerivative(Eigen::VectorXd z);
 
     public:
 
     ActivationFunction(activationType actName): actName(actName) {};
 
-    Eigen::MatrixXd activateHidden(Eigen::MatrixXd &z);
+    Eigen::VectorXd activateHidden(Eigen::VectorXd z);
 
-    Eigen::MatrixXd derivative(Eigen::MatrixXd &z);
+    Eigen::VectorXd derivative(Eigen::VectorXd z);
 };

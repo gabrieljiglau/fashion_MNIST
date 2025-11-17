@@ -63,64 +63,88 @@ void FeedForwardNetwork::addActivation(activationType actName){
     this->activationFunctions.push_back(ActivationFunction(actName));
 }
 
-void FeedForwardNetwork::forward(std::vector<Eigen::VectorXd> xIn){
-
-    /* xIn has potentially a number of this->miniBatchSize instances of type Eigen::VectorXd;
-       , but I need them inside a MatrixXd
-    */
-
-    Eigen::MatrixXd xBatch = Eigen::MatrixXd(xIn[0].rows(), xIn.size());
-    for (int i = 0; i < xBatch.rows(); i++){
-        xBatch.col(i) = xIn[i]; // by default VectorXd is a column  vector
-    }
+Eigen::MatrixXd FeedForwardNetwork::forward(Eigen::MatrixXd xBatch){
 
     // layer 0: do nothing
-    this->activations.push_back(this->weights[0]);
+    Eigen::MatrixXd activations(xBatch.rows(), xBatch.cols());
+    activations.row(0) = weights[0];
+
+    // z_l = W_l * a_l-1 + b_l
+    // a_l = activation(z_l)
     for (int layerIdx = 1; layerIdx < this->numLayers; layerIdx++){
-        Eigen::MatrixXd z = this->weights[layerIdx] * this->activations[layerIdx - 1] + this->biases[layerIdx];
-        this->activations.push_back(this->activationFunctions[layerIdx].activateHidden(z));
+        Eigen::MatrixXd z = this->weights[layerIdx] * activations.row(layerIdx - 1) + this->biases[layerIdx];
+        activations.row(layerIdx) = this->activationFunctions[layerIdx].activateHidden(z);
     }
+
+    return activations;
 }
 
 
-std::vector<Eigen::MatrixXd> FeedForwardNetwork::backward(Eigen::MatrixXd xBatch, Eigen::MatrixXd yOneHot, int batchSize){
+void FeedForwardNetwork::backward(Eigen::MatrixXd xBatch, Eigen::MatrixXd yOneHot, Eigen::MatrixXd activations, int batchSize){
     
-    assert(this->lossFunction == CROSS_ENTROPY);
+    assert(this->lossFunction.getLossType() == CROSS_ENTROPY);
     
-    std::vector<Eigen::MatrixXd> gradients;
-
-    // when using minibatches activations are matrices ??
-
-    // direct formula for dL/dz in the last layer, when using cross entropy as the loss function
-    Eigen::VectorXd dL = this->activations[this->numLayers - 1] - yOneHot.row(batchSize - 1);
-
+    Eigen::MatrixXd gradients(xBatch.rows(), xBatch.cols());
     // off by 1 errors ??
+    Eigen::VectorXd dL = activations.row(this->numLayers - 1) - yOneHot.row(batchSize - 1);
 
     // the previous activations; and the L2 penalty
-    
-    // aici 
-    // de modificat actualizarile sa utilizeze functiile din 'utils.hpp' (lossLastLayer)
-
-    gradients.push_back(dL * this->activations[this->numLayers - 2] + this->weightDecay * this->weights[numLayers - 1]); 
+    // does the matrix need to be transposed ??
+    gradients.row(0) = dL * activations.row(this->numLayers - 2) + this->weightDecay * this->weights[numLayers - 1]; 
     for (int layerIdx = this->numLayers - 2; layerIdx > 1; layerIdx--){
-        Eigen::MatrixXd activationDerivative = this->activationFunctions[layerIdx].derivative(this->activations[layerIdx]);
-        gradients.push_back(lossHidden(gradients[gradients.size() - 1], this->weights[layerIdx + 1], activationDerivative));
+        Eigen::VectorXd activationDerivative = this->activationFunctions[layerIdx].derivative(activations.row(layerIdx));
+        gradients.row(layerIdx) = lossHidden(gradients.row(layerIdx - 1), this->weights[layerIdx + 1], activationDerivative);
     }
 
-    return gradients;
+    // + trebuie sa calculezi si derivata pierderii la bias: dL/db = exact delta_l
+
+
+    // aici nu stiu daca matricea 'gradients' are forma (shape) corecta
+
+    // weights update
+    for (int i = 0; i < batchSize; i++){
+        this->weights[i] -= this->learningRate * gradients.row(i);
+        
+    }
+
 }
 
-void FeedForwardNetwork::train(std::vector<Eigen::VectorXd> xTrain, std::vector<Eigen::VectorXd> yTrain, int epochs=10){
+void FeedForwardNetwork::train(std::vector<Eigen::VectorXd> xTrain, std::vector<Eigen::VectorXd> yTrain, int epochs){
     
     checkModel();
 
-    // divide the data into miniBatches, one of the splits will have less than this->miniBatchSize items
+    // split the data into miniBatches; one of the splits will have less than this->miniBatchSize items
+    int evenBatches = xTrain.size() / this->miniBatchSize;
+    int unevenBatchSize = xTrain.size() % this->miniBatchSize;
+    
 
-    // turn yTrain into Eigen::MatrixXd
+    float loss = 0;
+    auto start = xTrain.begin();
     for (int epoch = 0; epoch < epochs; epoch++){
-        // forward
-        // calculezi loss
-        // backward
+
+        std::cout << "Epoch ====> " << epoch + 1 << std::endl;
+
+        for (int instanceIdx = 0; instanceIdx < xTrain.size(); ){
+
+            int batchSize = (instanceIdx < evenBatches) ? this->miniBatchSize : unevenBatchSize;
+            std::vector<Eigen::VectorXd> xSlice(start, start + batchSize);
+            std::vector<Eigen::VectorXd> ySlice(start, start + batchSize);
+
+            std::cout << "Now processing instances " << instanceIdx << " : " << instanceIdx + batchSize << std::endl;
+
+            Eigen::MatrixXd xBatch = stackVectors(xSlice);
+            Eigen::MatrixXd yBatch = stackVectors(ySlice);
+            
+            Eigen::MatrixXd activations = forward(xBatch);
+            Eigen::MatrixXd gradients = backward(xBatch, yBatch, activations, batchSize);
+
+            loss += this->lossFunction.totalLoss(activations, yBatch);
+            
+            start += batchSize;
+            instanceIdx += batchSize;
+        }
+
+        std::cout << "Total loss " << loss / xTrain.size() << std::endl;
     }
 
 }
