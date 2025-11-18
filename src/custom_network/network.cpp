@@ -58,10 +58,12 @@ void FeedForwardNetwork::addLayer(const int numNeurons1, const int numNeurons2){
     this->biases.push_back(Eigen::VectorXd::Zero(numNeurons1));
 }
 
+
 void FeedForwardNetwork::addActivation(activationType actName){
 
     this->activationFunctions.push_back(ActivationFunction(actName));
 }
+
 
 Eigen::MatrixXd FeedForwardNetwork::forward(Eigen::MatrixXd xBatch){
 
@@ -84,30 +86,36 @@ void FeedForwardNetwork::backward(Eigen::MatrixXd xBatch, Eigen::MatrixXd yOneHo
     
     assert(this->lossFunction.getLossType() == CROSS_ENTROPY);
     
-    Eigen::MatrixXd gradients(xBatch.rows(), xBatch.cols());
-    // off by 1 errors ??
-    Eigen::VectorXd dL = activations.row(this->numLayers - 1) - yOneHot.row(batchSize - 1);
+    std::vector<Eigen::MatrixXd> gradientWeights(this->numLayers);
+    std::vector<Eigen::VectorXd> gradientBiases(this->numLayers);
+
+    for (int i = 0; i < gradientWeights.size(); i++){
+        gradientWeights[i].resize(this->weights[i].rows(), this->weights[i].cols());
+        gradientBiases[i].resize(this->biases[i].size());
+    }
+
+    // dl/dz output
+    Eigen::VectorXd dL = activations.row(this->numLayers - 1) - yOneHot.row(batchSize - 1); // off by 1 errors ??
 
     // the previous activations; and the L2 penalty
     // does the matrix need to be transposed ??
-    gradients.row(0) = dL * activations.row(this->numLayers - 2) + this->weightDecay * this->weights[numLayers - 1]; 
+    gradientWeights[0] = dL * activations.row(this->numLayers - 2) + this->weightDecay * this->weights[numLayers - 1]; 
     for (int layerIdx = this->numLayers - 2; layerIdx > 1; layerIdx--){
         Eigen::VectorXd activationDerivative = this->activationFunctions[layerIdx].derivative(activations.row(layerIdx));
-        gradients.row(layerIdx) = lossHidden(gradients.row(layerIdx - 1), this->weights[layerIdx + 1], activationDerivative);
+        gradientWeights[layerIdx] = lossHidden(gradientWeights[layerIdx - 1], this->weights[layerIdx + 1], activationDerivative);
+        gradientBiases[layerIdx] = lossHidden(gradientBiases[layerIdx - 1], this->biases[layerIdx + 1], Eigen::VectorXd::Ones(this->biases[layerIdx].size()));
     }
-
-    // + trebuie sa calculezi si derivata pierderii la bias: dL/db = exact delta_l
-
 
     // aici nu stiu daca matricea 'gradients' are forma (shape) corecta
 
-    // weights update
+    // weights and biases update
     for (int i = 0; i < batchSize; i++){
-        this->weights[i] -= this->learningRate * gradients.row(i);
-        
+        this->weights[i] -= this->learningRate * (gradientWeights[i] / batchSize);
+        this->biases[i] -= this->learningRate * (gradientBiases[i] / batchSize);   
     }
 
 }
+
 
 void FeedForwardNetwork::train(std::vector<Eigen::VectorXd> xTrain, std::vector<Eigen::VectorXd> yTrain, int epochs){
     
@@ -136,7 +144,7 @@ void FeedForwardNetwork::train(std::vector<Eigen::VectorXd> xTrain, std::vector<
             Eigen::MatrixXd yBatch = stackVectors(ySlice);
             
             Eigen::MatrixXd activations = forward(xBatch);
-            Eigen::MatrixXd gradients = backward(xBatch, yBatch, activations, batchSize);
+            backward(xBatch, yBatch, activations, batchSize);
 
             loss += this->lossFunction.totalLoss(activations, yBatch);
             

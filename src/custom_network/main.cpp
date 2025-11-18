@@ -17,13 +17,24 @@ int main(){
     std::string dataPath = std::getenv("DATA_PATH"); // full path to the dataset
     int batchSize = 64;
     int numWorkers = 3; 
-    //auto [trainSet, testSet] = loadMnist(dataPath, batchSize, numWorkers);
-    Eigen::MatrixXd A(3, 3);
-    A << 1, 2, 3,
-          2, 4, 6,
-          0, 0, 1;
+    auto [trainSet, testSet] = loadMnist(dataPath, batchSize, numWorkers);
+
+    float learningRate = 1e-5;
+    float weightDecay = 1e-3;
+    lossType loss = CROSS_ENTROPY;
+    Loss lossFunction(loss);
+    FeedForwardNetwork network(learningRate, weightDecay, lossFunction, batchSize);
+
+    // de adaugat aici straturile
+
+    // itetaring through the data loaders
+    for (auto &batch: *trainSet){
+        torch::Tensor x = batch.data;
+        torch::Tensor y = batch.target;
+
+        Eigen::MatrixXd X = torchToEigen(x);
+        Eigen::MatrixXd Y = torchToEigen(y);
+    }
 
     
-    std::cout << ActivationFunction::softmax(A) << std::endl;
-    //std::cout << A.rowwise() / A.rowwise().maxCoeff().transpose().array << std::endl;
 }

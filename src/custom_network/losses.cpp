@@ -3,6 +3,8 @@
 #include "include/losses.hpp"
 
 
+// !! posibil aici sa fie nevoie sa modifici functiile deoarece nu mai primesc ca parametru VectorXd, ci MatrixXd 
+
 float Loss::crossEntropy(Eigen::MatrixXd activation, Eigen::MatrixXd target){
     
     /*

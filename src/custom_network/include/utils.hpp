@@ -1,5 +1,6 @@
 #pragma once 
 
+#include <torch/torch.h>
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <vector>
@@ -13,3 +14,5 @@ Eigen::MatrixXd lossLastLayer(Eigen::MatrixXd activation, Eigen::MatrixXd activa
                 activationType activationName, lossType lossName);
 
 Eigen::MatrixXd lossHidden(Eigen::MatrixXd lossNext, Eigen::MatrixXd weightsNext, Eigen::MatrixXd activationDerivative);
+
+Eigen::MatrixXd torchToEigen(torch::Tensor &tensor);

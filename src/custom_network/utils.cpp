@@ -1,4 +1,5 @@
 #include <Eigen/Dense>
+#include <torch/types.h>
 #include "include/utils.hpp"
 #include "include/activations.hpp"
 
@@ -39,4 +40,21 @@ Eigen::MatrixXd lossLastLayer(Eigen::MatrixXd activation, Eigen::MatrixXd activa
 Eigen::MatrixXd lossHidden(Eigen::MatrixXd lossNext, Eigen::MatrixXd weightsNext, Eigen::MatrixXd activationDerivative){
 
     return weightsNext * lossNext * activationDerivative;
+}
+
+Eigen::MatrixXd torchToEigen(torch::Tensor &tensor){
+
+    TORCH_CHECK(tensor.device().is_cpu(), "Tensor must be on CPU, in order to get converted to Eigen::MatrixXd");
+    TORCH_CHECK(tensor.dtype() == torch::kFloat64, "Tensor must be a double");
+
+    auto sizes = tensor.sizes();
+    TORCH_CHECK(sizes.size() == 2, "Tensor must be a matrix");
+
+    int rows = sizes[0];
+    int cols = sizes[1];
+    Eigen::MatrixXd matrix(rows, cols);
+    
+    std::memcpy(matrix.data(), tensor.const_data_ptr<double>(), sizeof(double) * rows * cols); 
+
+    return matrix;
 }
