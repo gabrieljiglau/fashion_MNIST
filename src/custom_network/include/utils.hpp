@@ -15,4 +15,4 @@ Eigen::MatrixXd lossLastLayer(Eigen::MatrixXd activation, Eigen::MatrixXd activa
 
 Eigen::MatrixXd lossHidden(Eigen::MatrixXd lossNext, Eigen::MatrixXd weightsNext, Eigen::MatrixXd activationDerivative);
 
-Eigen::MatrixXd torchToEigen(torch::Tensor &tensor);
+torch::Tensor oneHotEncode(torch::Tensor tensor, int length);

@@ -26,8 +26,9 @@ void FeedForwardNetwork::checkModel(){
 
             return;
         }
-
     }
+
+    std::cout << "Network OK 👍 " << std::endl;
 }
 
 
@@ -37,7 +38,7 @@ Eigen::MatrixXd FeedForwardNetwork::heInitialization(const int numNeurons1, cons
 
     std::random_device rd;
     std::mt19937 seed(rd());
-    std::normal_distribution<float> normalDistribution(0, std::sqrt(2 / numNeurons1));
+    std::normal_distribution<float> normalDistribution(0.0f, std::sqrt(2.0f / numNeurons1));
 
     for (int i = 0; i < numNeurons1; i++){
         for (int j = 0; j < numNeurons2; j++){
@@ -49,23 +50,23 @@ Eigen::MatrixXd FeedForwardNetwork::heInitialization(const int numNeurons1, cons
 }
 
 
-void FeedForwardNetwork::addLayer(const int numNeurons1, const int numNeurons2){
+void FeedForwardNetwork::addLayer(const int numNeurons1, const int numNeurons2, std::optional<activationType> actName){
 
 
     this->numLayers += 1;
     Eigen::MatrixXd weights = heInitialization(numNeurons1, numNeurons2);
     this->weights.push_back(weights);
     this->biases.push_back(Eigen::VectorXd::Zero(numNeurons1));
-}
 
-
-void FeedForwardNetwork::addActivation(activationType actName){
-
-    this->activationFunctions.push_back(ActivationFunction(actName));
+    if (actName.has_value()){
+        this->activationFunctions.push_back(ActivationFunction(actName.value()));
+    }
 }
 
 
 Eigen::MatrixXd FeedForwardNetwork::forward(Eigen::MatrixXd xBatch){
+
+    // aici s-ar putea sa mai fie nevoie de schimbari
 
     // layer 0: do nothing
     Eigen::MatrixXd activations(xBatch.rows(), xBatch.cols());
@@ -73,9 +74,10 @@ Eigen::MatrixXd FeedForwardNetwork::forward(Eigen::MatrixXd xBatch){
 
     // z_l = W_l * a_l-1 + b_l
     // a_l = activation(z_l)
+
     for (int layerIdx = 1; layerIdx < this->numLayers; layerIdx++){
         Eigen::MatrixXd z = this->weights[layerIdx] * activations.row(layerIdx - 1) + this->biases[layerIdx];
-        activations.row(layerIdx) = this->activationFunctions[layerIdx].activateHidden(z);
+        activations.row(layerIdx) = this->activationFunctions[layerIdx - 1].activateHidden(z);
     }
 
     return activations;

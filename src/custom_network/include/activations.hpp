@@ -1,5 +1,6 @@
 #pragma once
-#include <Eigen/Dense>
+
+#include <torch/torch.h>
 
 enum activationType{
     SOFTMAX,
@@ -11,21 +12,21 @@ class ActivationFunction{
 
     activationType actName;
 
-    static Eigen::VectorXd softmax(Eigen::VectorXd z);
+    static torch::Tensor softmax(torch::Tensor z);
 
-    static Eigen::VectorXd relu(Eigen::VectorXd z);
+    static torch::Tensor relu(torch::Tensor z);
 
-    static Eigen::VectorXd sigmoid(Eigen::VectorXd z);
+    static torch::Tensor sigmoid(torch::Tensor z);
 
-    static Eigen::VectorXd reluDerivative(Eigen::VectorXd z);
+    static torch::Tensor reluDerivative(torch::Tensor z);
 
-    static Eigen::VectorXd sigmoidDerivative(Eigen::VectorXd z);
+    static torch::Tensor sigmoidDerivative(torch::Tensor z);
 
     public:
 
     ActivationFunction(activationType actName): actName(actName) {};
 
-    Eigen::VectorXd activateHidden(Eigen::VectorXd z);
+    torch::Tensor activateHidden(torch::Tensor z);
 
-    Eigen::VectorXd derivative(Eigen::VectorXd z);
+    torch::Tensor derivative(torch::Tensor z);
 };

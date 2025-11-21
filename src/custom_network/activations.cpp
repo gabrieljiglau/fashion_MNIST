@@ -1,27 +1,19 @@
-#include <Eigen/Core>
-#include <Eigen/Dense>
 #include <algorithm>
 #include "include/activations.hpp"
 
 
 // TO-DO: modify the loops to support Eigen::Vectors only
 
-Eigen::VectorXd ActivationFunction::softmax(Eigen::VectorXd z){
+torch::Tensor ActivationFunction::softmax(torch::Tensor z){
 
-    // by default, the operations performed by Eigen are on matrices
-    Eigen::MatrixXd zExp = (z.array().colwise() - z.rowwise().maxCoeff().array()).exp().matrix();
-    Eigen::VectorXd zExpSum = zExp.rowwise().sum();
-    
-    for (int i = 0; i < zExp.rows(); i++){
-        for (int j = 0; j < zExp.cols(); j++){
-            zExp(i, j) /= zExpSum(i);
-        }
-    }
+    // max(1: reduce over columns, true: keep dimensions)
+    torch::Tensor zExp = (z - z.max(1, true)).exp();
+    torch::Tensor zExpSum = zExp.sum(1, true);
 
-    return zExp;
+    return zExp / zExpSum;
 }
 
-Eigen::VectorXd ActivationFunction::relu(Eigen::VectorXd z){
+torch::Tensor ActivationFunction::relu(torch::Tensor z){
 
     for (int i = 0; i < z.rows(); i++){
         for (int j = 0; j < z.cols(); j++){
@@ -32,7 +24,7 @@ Eigen::VectorXd ActivationFunction::relu(Eigen::VectorXd z){
     return z;
 }
 
-Eigen::VectorXd ActivationFunction::sigmoid(Eigen::VectorXd z){
+torch::Tensor ActivationFunction::sigmoid(torch::Tensor z){
 
     /*
     sigma(x) = 1 / (1 + e^-x); equivalent to e^x / (1 + e^x)
@@ -49,7 +41,7 @@ Eigen::VectorXd ActivationFunction::sigmoid(Eigen::VectorXd z){
     return zExp;
 }
 
-Eigen::VectorXd ActivationFunction::reluDerivative(Eigen::VectorXd z){
+torch::Tensor ActivationFunction::reluDerivative(torch::Tensor z){
 
     /*
     d_relu/d_z = 1 if z > 0 else 0
@@ -65,7 +57,7 @@ Eigen::VectorXd ActivationFunction::reluDerivative(Eigen::VectorXd z){
 }
 
 
-Eigen::VectorXd ActivationFunction::sigmoidDerivative(Eigen::VectorXd z){
+torch::Tensor ActivationFunction::sigmoidDerivative(torch::Tensor z){
     
     /*
     d_sigma/d_z = sigma(x)(1 - sigma(x))
@@ -83,7 +75,7 @@ Eigen::VectorXd ActivationFunction::sigmoidDerivative(Eigen::VectorXd z){
     return sigma * oneMinusSigma;
 }  
 
-Eigen::VectorXd ActivationFunction::activateHidden(Eigen::VectorXd z){
+torch::Tensor ActivationFunction::activateHidden(torch::Tensor z){
 
     if (this->actName == RELU){
         return relu(z);
@@ -97,7 +89,7 @@ Eigen::VectorXd ActivationFunction::activateHidden(Eigen::VectorXd z){
     return Eigen::MatrixXd::Ones(z.rows(), z.cols());
 }
 
-Eigen::VectorXd ActivationFunction::derivative(Eigen::VectorXd z){
+torch::Tensor ActivationFunction::derivative(torch::Tensor z){
 
     if (this->actName == RELU){
         return reluDerivative(z);

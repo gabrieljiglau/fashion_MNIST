@@ -5,6 +5,7 @@
 #include <torch/torch.h>
 #include <Eigen/Dense>
 #include <iostream>
+#include <optional>
 #include "include/data_loaders.hpp"
 #include "include/activations.hpp"
 #include "include/losses.hpp"
@@ -21,19 +22,29 @@ int main(){
 
     float learningRate = 1e-5;
     float weightDecay = 1e-3;
-    lossType loss = CROSS_ENTROPY;
-    Loss lossFunction(loss);
+    
+    lossType crossEntropy = CROSS_ENTROPY;
+    activationType relu = RELU;
+
+    Loss lossFunction(crossEntropy);
     FeedForwardNetwork network(learningRate, weightDecay, lossFunction, batchSize);
 
-    // de adaugat aici straturile
 
-    // itetaring through the data loaders
+    network.addLayer(784, 128); // input layer: no activation, it just passes the input
+    network.addLayer(128, 128, relu); // hidden 1
+    network.addLayer(128, 128, relu); // hidden 2
+    network.addLayer(128, 10); // output layer
+
+    // de folosit doar torch::Tensor, fara Eigen::Matrix, fiindca e idiot sa faci asta
+
     for (auto &batch: *trainSet){
-        torch::Tensor x = batch.data;
-        torch::Tensor y = batch.target;
+        
+        torch::Tensor x = batch.data; // [batch_size, no_RGB_channels, img_height, img_width]
+        x = x.to(torch::kFloat64).flatten(1); // [batch_size, img_height X img_width]
 
-        Eigen::MatrixXd X = torchToEigen(x);
-        Eigen::MatrixXd Y = torchToEigen(y);
+        torch::Tensor y = batch.target;
+        y = y.to(torch::kFloat64);
+        y = oneHotEncode(y, 10); // of shape [batch_size, target_dim=10]
     }
 
     

@@ -42,19 +42,14 @@ Eigen::MatrixXd lossHidden(Eigen::MatrixXd lossNext, Eigen::MatrixXd weightsNext
     return weightsNext * lossNext * activationDerivative;
 }
 
-Eigen::MatrixXd torchToEigen(torch::Tensor &tensor){
+torch::Tensor oneHotEncode(torch::Tensor tensor, int length){
 
-    TORCH_CHECK(tensor.device().is_cpu(), "Tensor must be on CPU, in order to get converted to Eigen::MatrixXd");
-    TORCH_CHECK(tensor.dtype() == torch::kFloat64, "Tensor must be a double");
+    torch::Tensor oneHot = torch::zeros({tensor.size(0), length});
 
-    auto sizes = tensor.sizes();
-    TORCH_CHECK(sizes.size() == 2, "Tensor must be a matrix");
-
-    int rows = sizes[0];
-    int cols = sizes[1];
-    Eigen::MatrixXd matrix(rows, cols);
+    for (int i = 0; i < tensor.size(0); i++){
+        int target = tensor[i].item<int>();
+        oneHot.index_put_({i, target}, 1); 
+    }
     
-    std::memcpy(matrix.data(), tensor.const_data_ptr<double>(), sizeof(double) * rows * cols); 
-
-    return matrix;
+    return oneHot;
 }

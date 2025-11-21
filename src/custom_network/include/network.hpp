@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Eigen/Dense>
+#include <optional>
 #include <vector>
 #include "losses.hpp"
 #include "activations.hpp"
@@ -26,11 +27,8 @@ class FeedForwardNetwork{
 
     FeedForwardNetwork(float learningRate, float weightDecay, Loss lossFunction, int miniBatchSize): 
                        learningRate(learningRate), weightDecay(weightDecay), lossFunction(lossFunction), miniBatchSize(miniBatchSize) {};
-    ~FeedForwardNetwork(); // destructor cannot have any parameters
 
-    void addLayer(const int numNeurons1, const int numNeurons2);
-    
-    void addActivation(activationType actName);
+    void addLayer(const int numNeurons1, const int numNeurons2, std::optional<activationType> actName=std::nullopt);
     
     Eigen::MatrixXd forward(Eigen::MatrixXd xBatch);
 
