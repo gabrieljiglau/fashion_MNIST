@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <tuple>
 #include "include/activations.hpp"
 
 
@@ -7,7 +8,8 @@
 torch::Tensor ActivationFunction::softmax(torch::Tensor z){
 
     // max(1: reduce over columns, true: keep dimensions)
-    torch::Tensor zExp = (z - z.max(1, true)).exp();
+    auto [zMax, idx] = z.max(1, true);
+    torch::Tensor zExp = (z - zMax).exp();
     torch::Tensor zExpSum = zExp.sum(1, true);
 
     return zExp / zExpSum;
@@ -15,13 +17,20 @@ torch::Tensor ActivationFunction::softmax(torch::Tensor z){
 
 torch::Tensor ActivationFunction::relu(torch::Tensor z){
 
-    for (int i = 0; i < z.rows(); i++){
-        for (int j = 0; j < z.cols(); j++){
-            z(i, j) = std::max(0.0, z(i, j));
+
+    /*
+    works, but it is slow
+    */
+
+    /*
+    for (int i = 0; i < z.size(0); i++){
+        for (int j = 0; j < z.size(1); j++){
+            z[i][j] = std::max(0.0, z[i][j].item<double>());
         }
     }
+    */
 
-    return z;
+    return torch::clamp_min(z, 0);
 }
 
 torch::Tensor ActivationFunction::sigmoid(torch::Tensor z){
@@ -30,15 +39,10 @@ torch::Tensor ActivationFunction::sigmoid(torch::Tensor z){
     sigma(x) = 1 / (1 + e^-x); equivalent to e^x / (1 + e^x)
     */
 
-    Eigen::MatrixXd zExp = (z.array().colwise() - z.rowwise().maxCoeff().array()).exp().matrix();
-
-    for (int i = 0; i < zExp.rows(); i++){
-        for (int j = 0; j < zExp.cols(); j++){
-            zExp(i, j) /= zExp(i, j) + 1;
-        }
-    }
-
-    return zExp;
+    auto [zMax, idx] = z.max(1, true);
+    torch::Tensor zExp = (z - zMax).exp();
+    
+    return zExp / zExp.add_(1.0); // add_ modifies the tensor in-place
 }
 
 torch::Tensor ActivationFunction::reluDerivative(torch::Tensor z){
