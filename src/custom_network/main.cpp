@@ -35,17 +35,7 @@ int main(){
     network.addLayer(128, 128, relu); // hidden 2
     network.addLayer(128, 10); // output layer
 
-    // de folosit doar torch::Tensor, fara Eigen::Matrix, fiindca e idiot sa faci asta
-
-    for (auto &batch: *trainSet){
-        
-        torch::Tensor x = batch.data; // [batch_size, no_RGB_channels, img_height, img_width]
-        x = x.to(torch::kFloat64).flatten(1); // [batch_size, img_height X img_width]
-
-        torch::Tensor y = batch.target;
-        y = y.to(torch::kFloat64);
-        y = oneHotEncode(y, 10); // of shape [batch_size, target_dim=10]
-    }
+    network.train(trainSet, 10);
 
     
 }

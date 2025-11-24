@@ -1,9 +1,9 @@
+#include <ATen/ops/clamp_min.h>
 #include <algorithm>
+#include <cassert>
 #include <tuple>
 #include "include/activations.hpp"
 
-
-// TO-DO: modify the loops to support Eigen::Vectors only
 
 torch::Tensor ActivationFunction::softmax(torch::Tensor z){
 
@@ -51,35 +51,24 @@ torch::Tensor ActivationFunction::reluDerivative(torch::Tensor z){
     d_relu/d_z = 1 if z > 0 else 0
     */
 
-    for (int i = 0; i < z.rows(); i++){
-        for (int j = 0; j < z.cols(); j++){
-            z(i, j) = (z(i, j) > 0) ? 0 : 1 ;
-        }
-    }
-
-    return z;
+    return (z > 0).to(torch::kFloat64);
 }
 
 
-torch::Tensor ActivationFunction::sigmoidDerivative(torch::Tensor z){
+torch::Tensor ActivationFunction::sigmoidDerivative(torch::Tensor sigma){
     
     /*
     d_sigma/d_z = sigma(x)(1 - sigma(x))
     */
 
-    Eigen::MatrixXd sigma = z;
-    Eigen::MatrixXd oneMinusSigma = sigma;
-
-    for (int i = 0; i < z.rows(); i++){
-        for (int j = 0; j < z.cols(); j++){
-            oneMinusSigma(i, j) = 1 - sigma(i, j);
-        }
-    }
+    torch::Tensor oneMinusSigma = 1 - sigma;
 
     return sigma * oneMinusSigma;
 }  
 
 torch::Tensor ActivationFunction::activateHidden(torch::Tensor z){
+
+    assert(z.sizes().size() == 2);
 
     if (this->actName == RELU){
         return relu(z);
@@ -90,10 +79,12 @@ torch::Tensor ActivationFunction::activateHidden(torch::Tensor z){
     }
 
     // fallback; to check when calling
-    return Eigen::MatrixXd::Ones(z.rows(), z.cols());
+    return torch::ones({z.size(0), z.size(1)});
 }
 
 torch::Tensor ActivationFunction::derivative(torch::Tensor z){
+
+    assert(z.sizes().size() == 2);
 
     if (this->actName == RELU){
         return reluDerivative(z);
@@ -104,5 +95,5 @@ torch::Tensor ActivationFunction::derivative(torch::Tensor z){
     }
 
     // fallback; to check when calling
-    return Eigen::VectorXd::Ones(z.size());
+    return torch::ones({z.size(0), z.size(1)});
 }

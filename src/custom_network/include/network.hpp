@@ -1,10 +1,11 @@
 #pragma once
 
-#include <Eigen/Dense>
+#include<torch/torch.h>
 #include <optional>
 #include <vector>
 #include "losses.hpp"
 #include "activations.hpp"
+
 
 class FeedForwardNetwork{
 
@@ -14,14 +15,14 @@ class FeedForwardNetwork{
     float weightDecay;
 
     std::vector<ActivationFunction> activationFunctions;
-    std::vector<Eigen::MatrixXd> weights;
-    std::vector<Eigen::VectorXd> biases;
+    torch::Tensor weights;
+    torch::Tensor biases;
 
     Loss lossFunction;
 
     void checkModel();
 
-    Eigen::MatrixXd heInitialization(const int numNeurons1, const int numNeurons2);
+    std::tuple<torch::Tensor, torch::Tensor> heInitialization(const int numNeurons1, const int numNeurons2, bool isHidden);
 
     public:
 
@@ -30,11 +31,14 @@ class FeedForwardNetwork{
 
     void addLayer(const int numNeurons1, const int numNeurons2, std::optional<activationType> actName=std::nullopt);
     
-    Eigen::MatrixXd forward(Eigen::MatrixXd xBatch);
 
-    void backward(Eigen::MatrixXd xBatch, Eigen::MatrixXd yOneHot, Eigen::MatrixXd activations, int batchSize);
+    // functia asta ar trebui sa fie 'private'
+    torch::Tensor forward(torch::Tensor xBatch);
 
-    void train(std::vector<Eigen::VectorXd> xTrain, std::vector<Eigen::VectorXd> yTrain, int epochs=10);
+    void backward(torch::Tensor xBatch, torch::Tensor yOneHot, torch::Tensor activations, int batchSize);
 
-    void predict(Eigen::VectorXd xTest);
+    template<typename LoaderType>
+    void train(LoaderType trainSet, int epochs=10);
+
+    void predict(torch::Tensor xTest);
 };

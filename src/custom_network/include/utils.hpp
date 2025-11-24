@@ -1,18 +1,13 @@
 #pragma once 
 
 #include <torch/torch.h>
-#include <Eigen/Core>
-#include <Eigen/Dense>
-#include <vector>
 #include "activations.hpp"
 #include "losses.hpp"
 
 
-Eigen::MatrixXd stackVectors(std::vector<Eigen::VectorXd> vectors);
-
-Eigen::MatrixXd lossLastLayer(Eigen::MatrixXd activation, Eigen::MatrixXd activationPrev, Eigen::MatrixXd target, 
+torch::Tensor lossLastLayer(torch::Tensor activation, torch::Tensor activationPrev, torch::Tensor target, 
                 activationType activationName, lossType lossName);
 
-Eigen::MatrixXd lossHidden(Eigen::MatrixXd lossNext, Eigen::MatrixXd weightsNext, Eigen::MatrixXd activationDerivative);
+torch::Tensor lossHidden(torch::Tensor lossNext, torch::Tensor weightsNext, torch::Tensor activationDerivative);
 
 torch::Tensor oneHotEncode(torch::Tensor tensor, int length);

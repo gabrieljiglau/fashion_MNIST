@@ -1,11 +1,8 @@
-#include <Eigen/Dense>
 #include <cmath>
 #include "include/losses.hpp"
 
 
-// !! posibil aici sa fie nevoie sa modifici functiile deoarece nu mai primesc ca parametru VectorXd, ci MatrixXd 
-
-float Loss::crossEntropy(Eigen::MatrixXd activation, Eigen::MatrixXd target){
+float Loss::crossEntropy(torch::Tensor activation, torch::Tensor target){
     
     /*
     activation  -> the output from the activation funtion (i.e. softmax, relu)
@@ -13,26 +10,28 @@ float Loss::crossEntropy(Eigen::MatrixXd activation, Eigen::MatrixXd target){
     */
 
     int targetIndex = 0;
-    for (int i = 0; i < target.size(); i++){
-        if (target(i) == 1){
+    for (int i = 0; i < target.size(0); i++){
+        if (target[i].item<int>() == 1){
             targetIndex = i;
             break;
         }
     }
 
-    return -std::log10(activation(targetIndex));
+    // aici s-activarea este o matrice/un tensor 2Dar putea sa fie probleme, fiindca 
+    return -std::log10(activation[targetIndex].item<float>());
 }
 
-float Loss::mse(Eigen::MatrixXd activation, Eigen::MatrixXd target){
+float Loss::mse(torch::Tensor activation, torch::Tensor target){
 
-    float error = 0;
-    for (int i = 0; i < activation.size(); i++){
-        error += std::pow(activation(i) - target(i), 2) / 2;
-    }
-    return error;
+    torch::Tensor loss = activation - target;
+    loss *= loss;
+    loss /= 2;
+
+
+    return loss.sum().item<float>();
 }
 
-float Loss::totalLoss(Eigen::MatrixXd activation, Eigen::MatrixXd target){
+float Loss::totalLoss(torch::Tensor activation, torch::Tensor target){
 
     if (this->lossFunction == MSE){
         return mse(activation, target);

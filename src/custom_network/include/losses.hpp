@@ -1,6 +1,6 @@
 #pragma once
-#include <Eigen/Core>
-#include <Eigen/Dense>
+
+#include <torch/torch.h>
 
 enum lossType{
 
@@ -13,14 +13,14 @@ class Loss{
 
     lossType lossFunction;
 
-    static float mse(Eigen::MatrixXd activation, Eigen::MatrixXd target);
+    static float mse(torch::Tensor activation, torch::Tensor target);
 
-    static float crossEntropy(Eigen::MatrixXd activation, Eigen::MatrixXd target);
+    static float crossEntropy(torch::Tensor activation, torch::Tensor target);
 
     public:
     Loss(lossType lossFunction): lossFunction(lossFunction) {};
 
-    float totalLoss(Eigen::MatrixXd activation, Eigen::MatrixXd target);
+    float totalLoss(torch::Tensor activation, torch::Tensor target);
 
     lossType getLossType();
 };
