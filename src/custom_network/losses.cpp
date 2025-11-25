@@ -17,7 +17,7 @@ float Loss::crossEntropy(torch::Tensor activation, torch::Tensor target){
         }
     }
 
-    // aici s-activarea este o matrice/un tensor 2Dar putea sa fie probleme, fiindca 
+    // aici s-ar putea sa fie probleme, fiindca activarea este o matrice/un tensor 2D
     return -std::log10(activation[targetIndex].item<float>());
 }
 

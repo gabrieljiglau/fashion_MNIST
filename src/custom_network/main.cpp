@@ -22,6 +22,7 @@ int main(){
 
     float learningRate = 1e-5;
     float weightDecay = 1e-3;
+    int epochs = 2;
     
     lossType crossEntropy = CROSS_ENTROPY;
     activationType relu = RELU;
@@ -29,13 +30,12 @@ int main(){
     Loss lossFunction(crossEntropy);
     FeedForwardNetwork network(learningRate, weightDecay, lossFunction, batchSize);
 
-
-    network.addLayer(784, 128); // input layer: no activation, it just passes the input
+    network.addLayer(784, 784); // input layer: no activation, it just passes the input
     network.addLayer(128, 128, relu); // hidden 1
     network.addLayer(128, 128, relu); // hidden 2
     network.addLayer(128, 10); // output layer
 
-    network.train(trainSet, 10);
+    network.train(*trainSet, epochs);
 
     
 }

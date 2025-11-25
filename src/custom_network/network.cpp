@@ -1,28 +1,22 @@
 #include "include/network.hpp"
-#include "include/utils.hpp"
 #include <random>
 #include <assert.h>
 #include <iostream>
 #include <tuple>
 
 
-/// TODO: modify the loops to support torch::Tensor only
+bool FeedForwardNetwork::checkModel(){
 
-/// now the weights and biases are multi dimensional tensors
-
-
-void FeedForwardNetwork::checkModel(){
-
-    if (this->numLayers != this->weights.sizes().size() or this->numLayers != this->biases.sizes().size()){
-        std::cout << "Mismatch between the number of layers: " << this->numLayers << " and weights: " << this->weights.sizes().size()
-                  << " or biases: " << this->biases.sizes().size();
-        return;
+    if (this->numLayers != this->weights.size() or this->numLayers != this->biases.size()){
+        std::cout << "Mismatch between the number of layers: " << this->numLayers << " and weights: " << this->weights.size()
+                  << " or biases: " << this->biases.size() << std::endl;
+        return false;
     }
 
 
 
     // check if c1 == r2 as in:  current(r1, c1) x next(r2, c2)
-    for (int i = 0; i < this->weights.sizes().size() - 1; i++){
+    for (int i = 0; i < this->weights.size() - 1; i++){
 
         assert(this->weights[i].sizes().size() == 2);
 
@@ -33,11 +27,12 @@ void FeedForwardNetwork::checkModel(){
             std::cout << "Mismatch between layer " << i + 1 << ", shape: " << current.sizes() 
                       <<" and layer " << i + 2 << ", shape: " << next.sizes();
 
-            return;
+            return false;
         }
     }
 
     std::cout << "Network OK 👍 " << std::endl;
+    return true;
 }
 
 
@@ -68,24 +63,42 @@ std::tuple<torch::Tensor, torch::Tensor> FeedForwardNetwork::heInitialization(co
 void FeedForwardNetwork::addLayer(const int numNeurons1, const int numNeurons2, std::optional<activationType> actName){
 
     this->numLayers += 1;
-    this->weights = torch::cat({this->weights, torch::ones({numNeurons1, numNeurons2})}, 0);
-    this->biases = torch::cat({this->biases, torch::ones({numNeurons1})}, 0);
+
+    if (this->numLayers == 1){ // input layer, do nothing
+        this->weights.push_back(torch::zeros({numNeurons1, numNeurons2}));
+        this->biases.push_back(torch::zeros({numNeurons1}));
+    } else {
+        this->weights.push_back(torch::ones({numNeurons1, numNeurons2}));
+        this->biases.push_back(torch::ones({numNeurons1}));    
+    }
 
     if (actName.has_value()){
         this->activationFunctions.push_back(ActivationFunction(actName.value()));
     }
+
+    this->layerSizes.push_back(std::make_tuple(numNeurons1, numNeurons2));
 }
 
 
-torch::Tensor FeedForwardNetwork::forward(torch::Tensor xBatch){
+std::vector<torch::Tensor> FeedForwardNetwork::forward(torch::Tensor xBatch){
+
+
+    /// TODO: sau la modul cum merg activarile pe batch-uri ????
+    // cred ca ar trebuie sa mai fie inca o dimensiune pentru batch -> tensori cu 3 coordonate
+
 
     // layer 0: do nothing
-    torch::Tensor activations = torch::ones({xBatch.size(0), xBatch.size(1)});
-    activations[0] = weights[0]; 
+    std::vector<torch::Tensor> activations(this->numLayers);
+    for (int i = 0; i < activations.size(); i++){
+        activations[i] = torch::zeros({this->layerSizes[i][0], this->layerSizes[i][1]});
+    }
 
     // z_l = W_l * a_l-1 + b_l
     // a_l = activation(z_l)
     for (int layerIdx = 1; layerIdx < this->numLayers; layerIdx++){
+        std::cout << "activations[layerIdx - 1].sizes(): " << activations[layerIdx - 1].sizes() << std::endl;
+        std::cout << "this->weights[layerIdx]: " << this->weights[layerIdx].sizes() << std::endl;
+
         torch::Tensor z = this->weights[layerIdx] * activations[layerIdx - 1] + this->biases[layerIdx];
         activations[layerIdx] = this->activationFunctions[layerIdx - 1].activateHidden(z);
     }
@@ -94,13 +107,13 @@ torch::Tensor FeedForwardNetwork::forward(torch::Tensor xBatch){
 }
 
 
-void FeedForwardNetwork::backward(torch::Tensor xBatch, torch::Tensor yOneHot, torch::Tensor activations, int batchSize){
+void FeedForwardNetwork::backward(torch::Tensor xBatch, torch::Tensor yOneHot, std::vector<torch::Tensor> activations, int batchSize){
     
     assert(this->lossFunction.getLossType() == CROSS_ENTROPY);
     
     // initialize them with the weights/biases, to have the same shape
-    torch::Tensor gradientWeights = this->weights;
-    torch::Tensor gradientBiases = this->biases;
+    std::vector<torch::Tensor> gradientWeights = this->weights;
+    std::vector<torch::Tensor> gradientBiases = this->biases;
 
     // dl/dz output
     torch::Tensor dL = activations[this->numLayers - 1] - yOneHot[batchSize - 1]; // off by 1 errors ??
@@ -122,49 +135,4 @@ void FeedForwardNetwork::backward(torch::Tensor xBatch, torch::Tensor yOneHot, t
 
 }
 
-template<typename LoaderType>
-void FeedForwardNetwork::train(LoaderType trainSet, int epochs){
-    
-    checkModel();
 
-    // initialize each layer
-    for (int i = 0; i < this->weights.sizes().size(); i++){
-
-        bool isHidden = (i> 0) ? true : false;
-        int numNeurons1 = this->weights[i].size(0);
-        int numNeurons2 = this->weights[i].size(1);
-        
-        auto [newWeights, newBiases] = heInitialization(numNeurons1, numNeurons2, isHidden);
-        this->weights[i] = newWeights;
-        this->biases[i] = newBiases;
-    }
-
-
-    float loss = 0;
-
-    int batchNumber = 0;
-
-    for (int epoch = 0; epoch < epochs; epoch++){
-
-        std::cout << "Epoch ====> " << epoch + 1 << std::endl;
-
-        // deja ai xTrain si yTrain pregatite
-
-        for (auto &batch: *trainSet){
-            
-            std::cout << "Now processing instances from batch " << batchNumber + 1 << std::endl;
-            torch::Tensor xTrain = batch.data; // [batch_size, no_RGB_channels, img_height, img_width]
-            xTrain = xTrain.to(torch::kFloat64).flatten(1); // [batch_size, img_height X img_width]
-    
-            torch::Tensor yTrain = batch.target;
-            yTrain = yTrain.to(torch::kFloat64);
-            yTrain = oneHotEncode(yTrain, 10); // of shape [batch_size, target_dim=10]
-    
-            torch::Tensor activations = forward(xTrain);
-            backward(xTrain, yTrain, activations, xTrain.size(0));
-
-            loss += this->lossFunction.totalLoss(activations, yTrain);
-            std::cout << "Total loss " << loss / xTrain.size(1) << std::endl;
-        }
-    }
-}
