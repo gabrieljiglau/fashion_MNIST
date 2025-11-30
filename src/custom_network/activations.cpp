@@ -29,6 +29,12 @@ torch::Tensor ActivationFunction::relu(torch::Tensor z){
         }
     }
     */
+    
+    /*
+    std::cout << z << std::endl;
+    std::cout << "separator " << std::endl;
+    std::cout << torch::clamp_min(z, 0) << std::endl;
+    */
 
     return torch::clamp_min(z, 0);
 }

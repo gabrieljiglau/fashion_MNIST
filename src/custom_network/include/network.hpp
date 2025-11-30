@@ -15,7 +15,7 @@ class FeedForwardNetwork{
     float weightDecay;
 
     int numLayers = 0;
-    std::vector<std::tuple<int>> layerSizes;
+    std::vector<int> layerSizes;
 
     std::vector<ActivationFunction> activationFunctions;
     std::vector<torch::Tensor> weights;
@@ -55,9 +55,13 @@ void FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
     // initialize the layers
     for (int i = 0; i < this->weights.size(); i++){
 
-        bool isHidden = (i> 0) ? true : false;
         int numNeurons1 = this->weights[i].size(0);
         int numNeurons2 = this->weights[i].size(1);
+
+        bool isHidden = false;
+        if (i != 0 || i != this->weights.size() - 1){
+            isHidden = true;
+        }
             
         auto [newWeights, newBiases] = heInitialization(numNeurons1, numNeurons2, isHidden);
         this->weights[i] = newWeights;
@@ -70,7 +74,7 @@ void FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
 
     for (int epoch = 0; epoch < epochs; epoch++){
 
-        std::cout << "Epoch " << epoch + 1 << " ====> ";
+        std::cout << "Epoch ====>" << epoch + 1;
 
         for (auto &batch: trainSet){
                 

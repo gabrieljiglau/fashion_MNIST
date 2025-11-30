@@ -30,10 +30,9 @@ int main(){
     Loss lossFunction(crossEntropy);
     FeedForwardNetwork network(learningRate, weightDecay, lossFunction, batchSize);
 
-    network.addLayer(784, 784); // input layer: no activation, it just passes the input
-    network.addLayer(128, 128, relu); // hidden 1
-    network.addLayer(128, 128, relu); // hidden 2
-    network.addLayer(128, 10); // output layer
+    network.addLayer(784, 128); // input -> hidden 1
+    network.addLayer(128, 128, relu); // hidden 1 -> hidden 2
+    network.addLayer(128, 10, relu); // hidden 2 -> output layer  
 
     network.train(*trainSet, epochs);
 

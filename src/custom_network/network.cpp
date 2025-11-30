@@ -1,4 +1,5 @@
 #include "include/network.hpp"
+#include <ATen/TensorIndexing.h>
 #include <random>
 #include <assert.h>
 #include <iostream>
@@ -39,20 +40,23 @@ bool FeedForwardNetwork::checkModel(){
 std::tuple<torch::Tensor, torch::Tensor> FeedForwardNetwork::heInitialization(const int numNeurons1, const int numNeurons2, bool isHidden){
     
     torch::Tensor weights = torch::ones({numNeurons1, numNeurons2});
-    torch::Tensor biases = torch::ones({numNeurons1});
+    torch::Tensor biases = torch::zeros({numNeurons2});
 
     std::random_device rd;
     std::mt19937 seed(rd());
     std::normal_distribution<float> normalDistribution(0.0f, std::sqrt(2.0f / numNeurons1));
 
     for (int i = 0; i < numNeurons1; i++){
-
-        if (!isHidden){
-            biases[i] = normalDistribution(seed);
+        if (isHidden){
+            for (int j = 0; j < numNeurons2; j++){
+                weights[i][j] = normalDistribution(seed);
+            }
         }
+    }
 
-        for (int j = 0; j < numNeurons2; j++){
-            weights[i][j] = normalDistribution(seed);
+    for (int i = 0; i < numNeurons2; i++){
+        if (isHidden){
+            biases[i] = normalDistribution(seed);
         }
     }
 
@@ -62,45 +66,45 @@ std::tuple<torch::Tensor, torch::Tensor> FeedForwardNetwork::heInitialization(co
 
 void FeedForwardNetwork::addLayer(const int numNeurons1, const int numNeurons2, std::optional<activationType> actName){
 
-    this->numLayers += 1;
-
-    if (this->numLayers == 1){ // input layer, do nothing
-        this->weights.push_back(torch::zeros({numNeurons1, numNeurons2}));
-        this->biases.push_back(torch::zeros({numNeurons1}));
-    } else {
-        this->weights.push_back(torch::ones({numNeurons1, numNeurons2}));
-        this->biases.push_back(torch::ones({numNeurons1}));    
-    }
-
+    this->weights.push_back(torch::zeros({numNeurons1, numNeurons2}));
+    this->biases.push_back(torch::zeros({numNeurons1}));    
+    
     if (actName.has_value()){
         this->activationFunctions.push_back(ActivationFunction(actName.value()));
     }
 
-    this->layerSizes.push_back(std::make_tuple(numNeurons1, numNeurons2));
+    // a vector of ints, representing the number of neurons in each layer
+    this->layerSizes.push_back(numNeurons1);
+    this->numLayers += 1;
+
 }
 
 
 std::vector<torch::Tensor> FeedForwardNetwork::forward(torch::Tensor xBatch){
 
-
-    /// TODO: sau la modul cum merg activarile pe batch-uri ????
-    // cred ca ar trebuie sa mai fie inca o dimensiune pentru batch -> tensori cu 3 coordonate
-
-
-    // layer 0: do nothing
+    // all the activations, with the exception of the last layer
     std::vector<torch::Tensor> activations(this->numLayers);
-    for (int i = 0; i < activations.size(); i++){
-        activations[i] = torch::zeros({this->layerSizes[i][0], this->layerSizes[i][1]});
+
+    // layer 0: do nothing  
+    std::cout << xBatch.sizes() << std::endl;
+    activations[0] = xBatch;
+
+    for (int i = 1; i < activations.size() ; i++){
+        activations[i] = torch::zeros({this->miniBatchSize, this->layerSizes[i]});
     }
 
     // z_l = W_l * a_l-1 + b_l
-    // a_l = activation(z_l)
-    for (int layerIdx = 1; layerIdx < this->numLayers; layerIdx++){
-        std::cout << "activations[layerIdx - 1].sizes(): " << activations[layerIdx - 1].sizes() << std::endl;
-        std::cout << "this->weights[layerIdx]: " << this->weights[layerIdx].sizes() << std::endl;
+    // a_l = activation(z_l), for all layers, with the exception of the last one
+    for (int layerIdx = 0; layerIdx < this->numLayers; layerIdx++){
 
-        torch::Tensor z = this->weights[layerIdx] * activations[layerIdx - 1] + this->biases[layerIdx];
-        activations[layerIdx] = this->activationFunctions[layerIdx - 1].activateHidden(z);
+        torch::Tensor z = torch::matmul(activations[layerIdx].to(torch::kFloat64), this->weights[layerIdx].to(torch::kFloat64));
+        z += this->biases[layerIdx].to(torch::kFloat64);
+
+        if (layerIdx != this->numLayers - 1){
+            activations[layerIdx] = this->activationFunctions[layerIdx].activateHidden(z);
+        } else {  // no activation on the last layer
+            activations[layerIdx] = z;
+        }
     }
 
     return activations;
@@ -121,6 +125,7 @@ void FeedForwardNetwork::backward(torch::Tensor xBatch, torch::Tensor yOneHot, s
     // the previous activations; and the L2 penalty
     // does the matrix need to be transposed ??
     gradientWeights[0] = dL * activations[this->numLayers - 2] + this->weightDecay * this->weights[numLayers - 1]; 
+    std::cout << "ajunge aici ?" << std::endl; // nu ajunge aici
     for (int layerIdx = this->numLayers - 2; layerIdx > 1; layerIdx--){
         torch::Tensor activationDerivative = this->activationFunctions[layerIdx].derivative(activations[layerIdx]);
         gradientWeights[layerIdx] = lossHidden(gradientWeights[layerIdx - 1], this->weights[layerIdx + 1], activationDerivative);
