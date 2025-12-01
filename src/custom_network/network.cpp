@@ -105,6 +105,8 @@ std::vector<torch::Tensor> FeedForwardNetwork::forward(torch::Tensor xBatch){
         } else {  // no activation on the last layer
             activations[layerIdx] = z;
         }
+
+        std::cout << activations[layerIdx].sizes() << std::endl;
     }
 
     return activations;
@@ -119,18 +121,40 @@ void FeedForwardNetwork::backward(torch::Tensor xBatch, torch::Tensor yOneHot, s
     std::vector<torch::Tensor> gradientWeights = this->weights;
     std::vector<torch::Tensor> gradientBiases = this->biases;
 
+    for (auto t : gradientWeights){
+        std::cout << t.sizes() << std::endl;
+    }
+
+    std::cout << "num layers = " << this->numLayers << std::endl; // ar trebui sa fie 4, de fapt
+
     // dl/dz output
     torch::Tensor dL = activations[this->numLayers - 1] - yOneHot[batchSize - 1]; // off by 1 errors ??
 
     // the previous activations; and the L2 penalty
     // does the matrix need to be transposed ??
-    gradientWeights[0] = dL * activations[this->numLayers - 2] + this->weightDecay * this->weights[numLayers - 1]; 
-    std::cout << "ajunge aici ?" << std::endl; // nu ajunge aici
-    for (int layerIdx = this->numLayers - 2; layerIdx > 1; layerIdx--){
-        torch::Tensor activationDerivative = this->activationFunctions[layerIdx].derivative(activations[layerIdx]);
-        gradientWeights[layerIdx] = lossHidden(gradientWeights[layerIdx - 1], this->weights[layerIdx + 1], activationDerivative);
-        gradientBiases[layerIdx] = lossHidden(gradientBiases[layerIdx - 1], this->biases[layerIdx + 1], torch::ones(this->biases[layerIdx].sizes()));
+
+    int maxIdx = activations.size();
+    for (int layerIdx = maxIdx - 1; layerIdx >= 1; layerIdx--){
+
+        bool forBiases = true;
+        if (layerIdx == maxIdx - 1){ // loss from the output layer, computable directly
+            gradientWeights[layerIdx] = torch::matmul(activations[layerIdx - 1].transpose(0, 1), dL);
+            gradientWeights[layerIdx] += this->weightDecay * this->weights[layerIdx]; 
+        } else {
+            torch::Tensor activationDerivative = this->activationFunctions[layerIdx].derivative(activations[layerIdx]);
+            gradientWeights[layerIdx] = lossHidden(gradientWeights[layerIdx - 1], this->weights[layerIdx], activationDerivative, !forBiases);
+            
+            std::cout << "ma latri ?" << std::endl;
+            
+            //
+            // atentie !!!!!!; de fapt formula pentru gradientul bias-urilor e alta, logic :__)))
+            //, deci folosesti o alta functie/metoda aici
+            gradientBiases[layerIdx] = lossHidden(gradientBiases[layerIdx - 1], this->biases[layerIdx], torch::ones(this->biases[layerIdx].sizes()), forBiases);
+            std::cout << "ma latri (1) ?" << std::endl;
+        }
     }
+
+    std::cout << "ma latri, din nou ?" << std::endl;
 
     // weights and biases update
     for (int i = 0; i < batchSize; i++){

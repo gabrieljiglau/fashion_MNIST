@@ -74,7 +74,7 @@ void FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
 
     for (int epoch = 0; epoch < epochs; epoch++){
 
-        std::cout << "Epoch ====>" << epoch + 1;
+        std::cout << "Epoch " << epoch + 1 << " ====> ";
 
         for (auto &batch: trainSet){
                 

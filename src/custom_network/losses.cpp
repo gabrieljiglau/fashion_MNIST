@@ -37,6 +37,7 @@ float Loss::totalLoss(torch::Tensor activation, torch::Tensor target){
         return mse(activation, target);
     }
 
+    /// TODO: here you should add the L2 penalty (add the squared sum of coefficients to the loss function) 
     if (this->lossFunction == CROSS_ENTROPY){
         return crossEntropy(activation, target);
     }
