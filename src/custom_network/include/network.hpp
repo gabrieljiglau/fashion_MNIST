@@ -66,8 +66,8 @@ void FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
         auto [newWeights, newBiases] = heInitialization(numNeurons1, numNeurons2, isHidden);
         this->weights[i] = newWeights;
         this->biases[i] = newBiases;
-    }
 
+    }
 
     float loss = 0;
     int batchNumber = 0;
@@ -76,9 +76,11 @@ void FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
 
         std::cout << "Epoch " << epoch + 1 << " ====> ";
 
+        float epochLoss = 0;
         for (auto &batch: trainSet){
-                
-            std::cout << "Now processing instances from batch " << batchNumber + 1 << std::endl;
+
+            batchNumber += 1;
+
             torch::Tensor xTrain = batch.data; // [batch_size, no_RGB_channels, img_height, img_width]
             xTrain = xTrain.to(torch::kFloat64).flatten(1); // [batch_size, img_height X img_width]
         
@@ -87,13 +89,13 @@ void FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
             yTrain = oneHotEncode(yTrain, 10); // of shape [batch_size, target_dim=10]
         
             std::vector<torch::Tensor> activations = forward(xTrain);
-            std::cout << "dupa forward " << std::endl;
-
+    
             backward(xTrain, yTrain, activations, xTrain.size(0));
-            std::cout << "dupa backward " << std::endl;
 
-            loss += this->lossFunction.totalLoss(activations[activations.size() - 1], yTrain);
-            std::cout << "Total loss " << loss / xTrain.size(1) << std::endl;
+            epochLoss += this->lossFunction.totalLoss(activations[activations.size() - 1], yTrain);
+            //std::cout << "epoch loss at batch " << batchNumber << " -> " << epochLoss << std::endl;
         }
+
+        std::cout << "Total loss " << epochLoss / batchNumber << std::endl;
     }
 }

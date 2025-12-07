@@ -1,7 +1,5 @@
 #include <ATen/ops/clamp_min.h>
-#include <algorithm>
 #include <cassert>
-#include <tuple>
 #include "include/activations.hpp"
 
 
@@ -84,6 +82,14 @@ torch::Tensor ActivationFunction::activateHidden(torch::Tensor z){
         return sigmoid(z);
     }
 
+    if (this->actName == SOFTMAX){
+        return softmax(z);
+    }
+
+    if (this->actName == NONE){
+        return z;
+    }
+
     // fallback; to check when calling
     return torch::ones({z.size(0), z.size(1)});
 }
@@ -102,4 +108,8 @@ torch::Tensor ActivationFunction::derivative(torch::Tensor z){
 
     // fallback; to check when calling
     return torch::ones({z.size(0), z.size(1)});
+}
+
+activationType ActivationFunction::getName(){
+    return this->actName;
 }

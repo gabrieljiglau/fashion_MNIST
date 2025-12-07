@@ -1,24 +1,27 @@
-#include <cmath>
 #include "include/losses.hpp"
 
 
 float Loss::crossEntropy(torch::Tensor activation, torch::Tensor target){
     
     /*
-    activation  -> the output from the activation funtion (i.e. softmax, relu)
+    activation  -> the output from the activation funtion (i.e. softmax)
     targetIndex -> target in one-hot encoding form
     */
 
-    int targetIndex = 0;
-    for (int i = 0; i < target.size(0); i++){
-        if (target[i].item<int>() == 1){
-            targetIndex = i;
-            break;
-        }
-    }
+    double epsilon = 1e-9;
 
-    // aici s-ar putea sa fie probleme, fiindca activarea este o matrice/un tensor 2D
-    return -std::log10(activation[targetIndex].item<float>());
+
+    // the activations are off ??
+    //std::cout << "activation" << activation << std::endl;
+    //std::cout << "target" << target << std::endl;
+    
+    //std::cout << "logits : " << activation << std::endl;
+    activation += epsilon;
+    torch::Tensor logits = torch::log(activation);
+    //std::cout << "logits : " << logits << std::endl;
+    torch::Tensor loss = -(target * logits).sum(1).mean();
+
+    return loss.item<float>();
 }
 
 float Loss::mse(torch::Tensor activation, torch::Tensor target){
@@ -37,7 +40,7 @@ float Loss::totalLoss(torch::Tensor activation, torch::Tensor target){
         return mse(activation, target);
     }
 
-    /// TODO: here you should add the L2 penalty (add the squared sum of coefficients to the loss function) 
+    /// the L2 penalty is added in the gradients computation
     if (this->lossFunction == CROSS_ENTROPY){
         return crossEntropy(activation, target);
     }

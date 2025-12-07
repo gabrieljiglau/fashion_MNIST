@@ -1,8 +1,10 @@
 #include "include/network.hpp"
+#include "include/utils.hpp"
 #include <ATen/TensorIndexing.h>
 #include <random>
 #include <assert.h>
 #include <iostream>
+#include <torch/types.h>
 #include <tuple>
 
 
@@ -63,7 +65,6 @@ std::tuple<torch::Tensor, torch::Tensor> FeedForwardNetwork::heInitialization(co
     return std::make_tuple(weights, biases);
 }
 
-
 void FeedForwardNetwork::addLayer(const int numNeurons1, const int numNeurons2, std::optional<activationType> actName){
 
     this->weights.push_back(torch::zeros({numNeurons1, numNeurons2}));
@@ -76,22 +77,15 @@ void FeedForwardNetwork::addLayer(const int numNeurons1, const int numNeurons2, 
     // a vector of ints, representing the number of neurons in each layer
     this->layerSizes.push_back(numNeurons1);
     this->numLayers += 1;
-
 }
 
 
 std::vector<torch::Tensor> FeedForwardNetwork::forward(torch::Tensor xBatch){
 
-    // all the activations, with the exception of the last layer
-    std::vector<torch::Tensor> activations(this->numLayers);
+    std::vector<torch::Tensor> activations(this->numLayers + 1);
 
     // layer 0: do nothing  
-    std::cout << xBatch.sizes() << std::endl;
     activations[0] = xBatch;
-
-    for (int i = 1; i < activations.size() ; i++){
-        activations[i] = torch::zeros({this->miniBatchSize, this->layerSizes[i]});
-    }
 
     // z_l = W_l * a_l-1 + b_l
     // a_l = activation(z_l), for all layers, with the exception of the last one
@@ -99,14 +93,10 @@ std::vector<torch::Tensor> FeedForwardNetwork::forward(torch::Tensor xBatch){
 
         torch::Tensor z = torch::matmul(activations[layerIdx].to(torch::kFloat64), this->weights[layerIdx].to(torch::kFloat64));
         z += this->biases[layerIdx].to(torch::kFloat64);
+        activations[layerIdx + 1] = this->activationFunctions[layerIdx].activateHidden(z);
+      
 
-        if (layerIdx != this->numLayers - 1){
-            activations[layerIdx] = this->activationFunctions[layerIdx].activateHidden(z);
-        } else {  // no activation on the last layer
-            activations[layerIdx] = z;
-        }
-
-        std::cout << activations[layerIdx].sizes() << std::endl;
+        //std::cout << activations[layerIdx].sizes() << std::endl;
     }
 
     return activations;
@@ -121,46 +111,48 @@ void FeedForwardNetwork::backward(torch::Tensor xBatch, torch::Tensor yOneHot, s
     std::vector<torch::Tensor> gradientWeights = this->weights;
     std::vector<torch::Tensor> gradientBiases = this->biases;
 
-    for (auto t : gradientWeights){
+    /*
+    for (auto t : activations){
         std::cout << t.sizes() << std::endl;
     }
-
-    std::cout << "num layers = " << this->numLayers << std::endl; // ar trebui sa fie 4, de fapt
+    */
 
     // dl/dz output
-    torch::Tensor dL = activations[this->numLayers - 1] - yOneHot[batchSize - 1]; // off by 1 errors ??
+    torch::Tensor delta = activations[this->numLayers] - yOneHot;
+    //std::cout << "shape(dL) = " << delta.sizes() << std::endl;
+    
 
-    // the previous activations; and the L2 penalty
-    // does the matrix need to be transposed ??
+    for (int layerIdx = this->numLayers - 1; layerIdx >= 0; layerIdx--){
 
-    int maxIdx = activations.size();
-    for (int layerIdx = maxIdx - 1; layerIdx >= 1; layerIdx--){
+        if (layerIdx == this->numLayers - 1){ // loss from the output layer, computable directly
+            
+            torch::Tensor gradW = torch::matmul(activations[layerIdx].transpose(0, 1).to(torch::kFloat64), delta);
+            gradientWeights[layerIdx] = gradW + this->weightDecay * this->weights[layerIdx].to(torch::kFloat64); // add the L2 penalty
+            
+            gradientBiases[layerIdx] = lossBiases(delta);
 
-        bool forBiases = true;
-        if (layerIdx == maxIdx - 1){ // loss from the output layer, computable directly
-            gradientWeights[layerIdx] = torch::matmul(activations[layerIdx - 1].transpose(0, 1), dL);
-            gradientWeights[layerIdx] += this->weightDecay * this->weights[layerIdx]; 
         } else {
-            torch::Tensor activationDerivative = this->activationFunctions[layerIdx].derivative(activations[layerIdx]);
-            gradientWeights[layerIdx] = lossHidden(gradientWeights[layerIdx - 1], this->weights[layerIdx], activationDerivative, !forBiases);
+
+            torch::Tensor activationDerivative = this->activationFunctions[layerIdx].derivative(activations[layerIdx + 1]);
+            delta = lossWeights(delta, this->weights[layerIdx + 1], activationDerivative).to(torch::kFloat64);
             
-            std::cout << "ma latri ?" << std::endl;
+            // std::cout << "shape(dL) = " << delta.sizes() << std::endl;
+            // std::cout << "activations[layerIdx].sizes() " << activations[layerIdx].sizes() << std::endl;
+
+            gradientWeights[layerIdx] = torch::matmul(activations[layerIdx].transpose(0, 1).to(torch::kFloat64), delta);
+            gradientWeights[layerIdx] += this->weightDecay * this->weights[layerIdx];
             
-            //
-            // atentie !!!!!!; de fapt formula pentru gradientul bias-urilor e alta, logic :__)))
-            //, deci folosesti o alta functie/metoda aici
-            gradientBiases[layerIdx] = lossHidden(gradientBiases[layerIdx - 1], this->biases[layerIdx], torch::ones(this->biases[layerIdx].sizes()), forBiases);
-            std::cout << "ma latri (1) ?" << std::endl;
+            gradientBiases[layerIdx] = lossBiases(delta);
         }
     }
 
-    std::cout << "ma latri, din nou ?" << std::endl;
-
     // weights and biases update
-    for (int i = 0; i < batchSize; i++){
+    for (int i = 1; i < this->numLayers; i++){
         this->weights[i] -= this->learningRate * (gradientWeights[i] / batchSize);
         this->biases[i] -= this->learningRate * (gradientBiases[i] / batchSize);   
     }
+
+    /// TODO: de salvat ponderile dupa antrenare
 
 }
 

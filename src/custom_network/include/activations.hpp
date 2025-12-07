@@ -5,7 +5,8 @@
 enum activationType{
     SOFTMAX,
     RELU,
-    SIGMOID
+    SIGMOID,
+    NONE
 };
 
 class ActivationFunction{
@@ -29,4 +30,6 @@ class ActivationFunction{
     torch::Tensor activateHidden(torch::Tensor z);
 
     torch::Tensor derivative(torch::Tensor z);
+
+    activationType getName();
 };

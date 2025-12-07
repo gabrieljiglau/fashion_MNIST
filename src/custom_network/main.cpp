@@ -22,21 +22,24 @@ int main(){
 
     float learningRate = 1e-5;
     float weightDecay = 1e-3;
-    int epochs = 2;
+    int epochs = 3;
     
     lossType crossEntropy = CROSS_ENTROPY;
+
+    activationType none = NONE;
     activationType relu = RELU;
+    activationType softmax = SOFTMAX;
 
     Loss lossFunction(crossEntropy);
     FeedForwardNetwork network(learningRate, weightDecay, lossFunction, batchSize);
 
-
-    /// TODO: modul cum construiesc straturile si adaug functiile de activare este suspect (trebuie modificat)
-    network.addLayer(784, 128); // input -> hidden 1
+    network.addLayer(784, 128, none); // input -> hidden 1
     network.addLayer(128, 128, relu); // hidden 1 -> hidden 2
-    network.addLayer(128, 10, relu); // hidden 2 -> output layer  
+    network.addLayer(128, 10, softmax); // hidden 2 -> output layer  
 
     network.train(*trainSet, epochs);
+
+    /// TODO: add hyperparameter sweep using random search (si de pus in utils)
 
     
 }
