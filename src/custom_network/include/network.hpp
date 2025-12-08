@@ -44,11 +44,11 @@ class FeedForwardNetwork{
     void predict(torch::Tensor xTest);
 
     template<typename LoaderType>
-    void train(LoaderType &trainSet, int epochs);
+    int train(LoaderType &trainSet, int epochs);
 };
 
 template<typename LoaderType>
-void FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
+int FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
         
     assert(checkModel() == true);
 
@@ -72,30 +72,42 @@ void FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
     float loss = 0;
     int batchNumber = 0;
 
+    int totalInstances = 0;
+    int correctLabels = 0;
+    float accuracy = 0;
+
     for (int epoch = 0; epoch < epochs; epoch++){
 
         std::cout << "Epoch " << epoch + 1 << " ====> ";
 
         float epochLoss = 0;
+        torch::Tensor yOneHot;
         for (auto &batch: trainSet){
 
             batchNumber += 1;
 
             torch::Tensor xTrain = batch.data; // [batch_size, no_RGB_channels, img_height, img_width]
-            xTrain = xTrain.to(torch::kFloat64).flatten(1); // [batch_size, img_height X img_width]
+            xTrain = xTrain.to(torch::kFloat64).flatten(1); // [batch_size, img_height X img_width
+            totalInstances += xTrain.size(1);
         
             torch::Tensor yTrain = batch.target;
             yTrain = yTrain.to(torch::kFloat64);
-            yTrain = oneHotEncode(yTrain, 10); // of shape [batch_size, target_dim=10]
+            yOneHot = oneHotEncode(yTrain, 10); // of shape [batch_size, num_classes=10]
         
             std::vector<torch::Tensor> activations = forward(xTrain);
-    
-            backward(xTrain, yTrain, activations, xTrain.size(0));
 
-            epochLoss += this->lossFunction.totalLoss(activations[activations.size() - 1], yTrain);
-            //std::cout << "epoch loss at batch " << batchNumber << " -> " << epochLoss << std::endl;
+            torch::Tensor lastActivation = activations[activations.size() - 1];
+            correctLabels += checkPredictions(lastActivation, yTrain);
+    
+            backward(xTrain, yOneHot, activations, xTrain.size(0));
+
+            epochLoss += this->lossFunction.totalLoss(lastActivation, yOneHot);
         }
 
         std::cout << "Total loss " << epochLoss / batchNumber << std::endl;
+        accuracy = (float(correctLabels) / totalInstances) * 100;
+        std::cout << "Prediction accuracy " << accuracy << "%" << std::endl;
     }
+
+    return accuracy;
 }

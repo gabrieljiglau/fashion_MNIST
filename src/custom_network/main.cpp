@@ -18,7 +18,7 @@ int main(){
     std::string dataPath = std::getenv("DATA_PATH"); // full path to the dataset
     int batchSize = 64;
     int numWorkers = 3; 
-    auto [trainSet, testSet] = loadMnist(dataPath, batchSize, numWorkers);
+    auto [trainSet, testSet] = loadMnist(dataPath, batchSize, numWorkers);  
 
     float learningRate = 1e-5;
     float weightDecay = 1e-3;

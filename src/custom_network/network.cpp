@@ -82,6 +82,7 @@ void FeedForwardNetwork::addLayer(const int numNeurons1, const int numNeurons2, 
 
 std::vector<torch::Tensor> FeedForwardNetwork::forward(torch::Tensor xBatch){
 
+    // contains both the preactivation, as well as the activation itself, that's why its size is numLayers + 1
     std::vector<torch::Tensor> activations(this->numLayers + 1);
 
     // layer 0: do nothing  
@@ -111,12 +112,6 @@ void FeedForwardNetwork::backward(torch::Tensor xBatch, torch::Tensor yOneHot, s
     std::vector<torch::Tensor> gradientWeights = this->weights;
     std::vector<torch::Tensor> gradientBiases = this->biases;
 
-    /*
-    for (auto t : activations){
-        std::cout << t.sizes() << std::endl;
-    }
-    */
-
     // dl/dz output
     torch::Tensor delta = activations[this->numLayers] - yOneHot;
     //std::cout << "shape(dL) = " << delta.sizes() << std::endl;
@@ -126,19 +121,22 @@ void FeedForwardNetwork::backward(torch::Tensor xBatch, torch::Tensor yOneHot, s
 
         if (layerIdx == this->numLayers - 1){ // loss from the output layer, computable directly
             
-            torch::Tensor gradW = torch::matmul(activations[layerIdx].transpose(0, 1).to(torch::kFloat64), delta);
-            gradientWeights[layerIdx] = gradW + this->weightDecay * this->weights[layerIdx].to(torch::kFloat64); // add the L2 penalty
+            torch::Tensor gradW = torch::matmul(activations[layerIdx].transpose(0, 1), delta);
+            gradientWeights[layerIdx] = gradW + this->weightDecay * this->weights[layerIdx]; // add the L2 penalty
             
             gradientBiases[layerIdx] = lossBiases(delta);
 
         } else {
 
+            // (w_l+1 @ delta_l+1) * a_l (the next activation)
             torch::Tensor activationDerivative = this->activationFunctions[layerIdx].derivative(activations[layerIdx + 1]);
-            delta = lossWeights(delta, this->weights[layerIdx + 1], activationDerivative).to(torch::kFloat64);
+            delta = lossWeights(delta, this->weights[layerIdx + 1], activationDerivative);
             
             // std::cout << "shape(dL) = " << delta.sizes() << std::endl;
             // std::cout << "activations[layerIdx].sizes() " << activations[layerIdx].sizes() << std::endl;
 
+
+            //delta * a_l - 1
             gradientWeights[layerIdx] = torch::matmul(activations[layerIdx].transpose(0, 1).to(torch::kFloat64), delta);
             gradientWeights[layerIdx] += this->weightDecay * this->weights[layerIdx];
             

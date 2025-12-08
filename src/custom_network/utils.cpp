@@ -1,4 +1,5 @@
 #include "include/utils.hpp"
+#include <ATen/core/interned_strings.h>
 
 
 torch::Tensor lossWeights(torch::Tensor lossNext, torch::Tensor weightsNext, torch::Tensor activationDerivative){
@@ -13,8 +14,6 @@ torch::Tensor lossBiases(torch::Tensor losses){
 }
 
 
-// aici de fapt erau bune alea 2 functii, pentru ca fac lucruri diferite !!!
-
 torch::Tensor oneHotEncode(torch::Tensor tensor, int length){
 
     torch::Tensor oneHot = torch::zeros({tensor.size(0), length});
@@ -25,4 +24,29 @@ torch::Tensor oneHotEncode(torch::Tensor tensor, int length){
     }
     
     return oneHot;
+}
+
+int checkPredictions(torch::Tensor softmaxOutput, torch::Tensor groundTruth){
+
+    /*
+    return the number of correctly labeled examples 
+    */
+
+    torch::Tensor predictions = torch::argmax(softmaxOutput, 1);
+    assert(predictions.sizes() == groundTruth.sizes()); // and they should be [batch_size]
+    
+    int correctPredictions = 0;
+    for (int i = 0; i < predictions.size(0); i++){
+        if (predictions[i].item<int>() == groundTruth[i].item<int>()){
+            correctPredictions += 1;
+        }
+    }
+
+    return correctPredictions;
+}
+
+void hyperparameterSweep(){
+
+    /// TODO: randomized search
+
 }

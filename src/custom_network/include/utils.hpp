@@ -8,3 +8,7 @@ torch::Tensor lossWeights(torch::Tensor lossNext, torch::Tensor weightsNext, tor
 torch::Tensor lossBiases(torch::Tensor loss);
 
 torch::Tensor oneHotEncode(torch::Tensor tensor, int length);
+
+int checkPredictions(torch::Tensor softmaxOutput, torch::Tensor groundTruth);
+
+void hyperparameterSweep();
