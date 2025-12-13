@@ -1,6 +1,5 @@
 #include "include/utils.hpp"
-#include <ATen/core/interned_strings.h>
-
+#include <random>
 
 torch::Tensor lossWeights(torch::Tensor lossNext, torch::Tensor weightsNext, torch::Tensor activationDerivative){
 
@@ -45,8 +44,50 @@ int checkPredictions(torch::Tensor softmaxOutput, torch::Tensor groundTruth){
     return correctPredictions;
 }
 
-void hyperparameterSweep(){
+template<typename T>
+bool contains(std::vector<T> &vector, T &toFind){
+    return std::find(vector.begin(), vector.end(), toFind) != vector.end();
+}
 
-    /// TODO: randomized search
+std::vector<std::array<int, 5>> assignPermutations(std::array<float, 4> learningRate, std::array<float, 3> weightDecay,
+                                                   std::array<int, 4> batchSize, std::array<int, 3> numHidden, float percentage){
 
+    // use randomized search (percentage * the complete search-space)
+    int searchSpace = learningRate.size() * weightDecay.size() * batchSize.size() * numHidden.size() * numHidden.size();
+    int usedSearchSpace = int(percentage * searchSpace);
+
+    // avoid reevaluations
+    std::vector<std::array<int, 5>> permutations;
+
+    // choose uniformly from each hyperparameter
+    std::random_device rd;
+    std::mt19937_64 seed(rd());
+    std::uniform_int_distribution<> distribution1(0, 3); // for the hyperparameters that hold 4 values
+    std::uniform_int_distribution<> distribution2(0, 2); // for those that hold 3 values
+
+    while (permutations.size() < usedSearchSpace){
+
+        std::array<int, 5> currentPermutation;
+        for (int i = 0; i < 2; i++){
+            currentPermutation[i] = distribution1(seed);
+        }
+
+        for (int i = 0; i < 3; i++){
+            currentPermutation[i + 2] = distribution2(seed);
+        }
+
+        if (!contains(permutations, currentPermutation)){
+            float lr = learningRate[currentPermutation[0]];
+            float bs = batchSize[currentPermutation[1]];
+            float wd = weightDecay[currentPermutation[2]];
+            int numNeurons1 = numHidden[currentPermutation[3]];
+            int numNeurons2 = numHidden[currentPermutation[4]];
+            
+
+            // aici de fapt trebuie sa returnezi un vector de tuple/tupluri
+            permutations.push_back(currentPermutation);
+        }
+    }
+
+    return permutations;
 }

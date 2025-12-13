@@ -2,6 +2,8 @@
 
 #include<torch/torch.h>
 #include <optional>
+#include <tuple>
+#include <array>
 #include <vector>
 #include "utils.hpp"
 #include "losses.hpp"
@@ -43,12 +45,17 @@ class FeedForwardNetwork{
 
     void predict(torch::Tensor xTest);
 
+    static FeedForwardNetwork buildStandardNetwork(int noInputs, std::array<int, 2> numHidden, int noOutputs,
+                                            float learningRate, float batchSize, float weightDecay,
+                                            std::array<activationType, 3> activationFunctions, const Loss lossFun);
+
+
     template<typename LoaderType>
-    int train(LoaderType &trainSet, int epochs);
+    std::tuple<float, std::vector<torch::Tensor>, std::vector<torch::Tensor>> train(LoaderType &trainSet, int epochs);
 };
 
 template<typename LoaderType>
-int FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
+std::tuple<float, std::vector<torch::Tensor>, std::vector<torch::Tensor>> FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
         
     assert(checkModel() == true);
 
@@ -109,5 +116,5 @@ int FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
         std::cout << "Prediction accuracy " << accuracy << "%" << std::endl;
     }
 
-    return accuracy;
+    return std::make_tuple(accuracy, this->weights, this->biases);
 }

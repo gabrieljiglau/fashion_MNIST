@@ -11,4 +11,5 @@ torch::Tensor oneHotEncode(torch::Tensor tensor, int length);
 
 int checkPredictions(torch::Tensor softmaxOutput, torch::Tensor groundTruth);
 
-void hyperparameterSweep();
+std::vector<std::array<int, 5>> assignPermutations(std::array<float, 4> learningRate, std::array<float, 3> weightDecay,
+                                                   std::array<int, 4> batchSize, std::array<int, 3> numHidden, float percentage);

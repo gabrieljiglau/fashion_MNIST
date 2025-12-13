@@ -114,8 +114,6 @@ void FeedForwardNetwork::backward(torch::Tensor xBatch, torch::Tensor yOneHot, s
 
     // dl/dz output
     torch::Tensor delta = activations[this->numLayers] - yOneHot;
-    //std::cout << "shape(dL) = " << delta.sizes() << std::endl;
-    
 
     for (int layerIdx = this->numLayers - 1; layerIdx >= 0; layerIdx--){
 
@@ -150,8 +148,23 @@ void FeedForwardNetwork::backward(torch::Tensor xBatch, torch::Tensor yOneHot, s
         this->biases[i] -= this->learningRate * (gradientBiases[i] / batchSize);   
     }
 
-    /// TODO: de salvat ponderile dupa antrenare
+}
 
+FeedForwardNetwork FeedForwardNetwork::buildStandardNetwork(int noInputs, std::array<int, 2> numHidden, int noOutputs,
+                          float learningRate, float batchSize, float weightDecay,
+                          std::array<activationType, 3> activationFunctions, const Loss lossFunction){
+
+    /*
+    creates a FeedForwardNetwork with 2 hidden layers, with the hyperparameters passed to the function
+    */
+
+    FeedForwardNetwork network(learningRate, weightDecay, lossFunction, batchSize);
+
+    network.addLayer(noInputs, numHidden[0], activationFunctions[0]); // input -> hidden 1
+    network.addLayer(numHidden[0], numHidden[1], activationFunctions[1]); // hidden 1 -> hidden 2
+    network.addLayer(numHidden[1], noOutputs, activationFunctions[2]); // hidden 2 -> output layer 
+
+    return network;
 }
 
 
