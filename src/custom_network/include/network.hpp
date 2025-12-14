@@ -49,9 +49,10 @@ class FeedForwardNetwork{
                                             float learningRate, float batchSize, float weightDecay,
                                             std::array<activationType, 3> activationFunctions, const Loss lossFun);
 
-
     template<typename LoaderType>
     std::tuple<float, std::vector<torch::Tensor>, std::vector<torch::Tensor>> train(LoaderType &trainSet, int epochs);
+
+    /// TODO: add getters and setter for learning rate, batchSize, weight decay and hiddenSizes (? but this doesn't exist here)
 };
 
 template<typename LoaderType>

@@ -5,28 +5,46 @@
 #include <torch/torch.h>
 #include <iostream>
 #include <optional>
+#include <fstream>
 #include "include/data_loaders.hpp"
 #include "include/activations.hpp"
 #include "include/losses.hpp"
 #include "include/utils.hpp"
 #include "include/network.hpp"
 
-std::array<float, 4> hyperparameterSweep(std::array<float, 4> learningRate, std::array<float, 3> weightDecay,
+template<typename LoaderType>
+std::array<float, 4> hyperparameterSweep(LoaderType &trainSet, std::array<float, 4> learningRate, std::array<float, 3> weightDecay,
                                          std::array<int, 4> batchSize, std::array<int, 3> numHidden, 
                                          std::array<activationType, 3> activationFunctions, Loss lossFunction,
-                                         float percentage, int noInputs, int noOutputs, int epochs){
+                                         float percentage, int noInputs, int noOutputs, int epochs=10, std::string path="../models/hyperparams_custom.txt"){
     
-    std::vector<std::array<int, 5>> permutations = assignPermutations(learningRate, weightDecay, batchSize, numHidden, percentage);
+    std::vector<std::unique_ptr<FeedForwardNetwork>> networkConfigs = networkSweep(noInputs, noOutputs, learningRate, weightDecay, batchSize,
+                                                                  numHidden, lossFunction, activationFunctions, percentage);
     
-    /// TODO: reparat aici cum dai ca argument 'permutation' si ce anume pastrezi in ele .. (lr bs wd numNeurons1  numNeurons2 )
-
-    for (auto permutation : permutations){
-        FeedForwardNetwork network = FeedForwardNetwork::buildStandardNetwork(noInputs, noOutputs, activationFunctions, lossFunction, permutation);
+    int bestIdx = 0;
+    float bestPrecision = 0;
+    
+    for (int i = 0; i < networkConfigs.size(); i++){
+        auto& network = networkConfigs[i];
+        auto [precision, weights, biases] = network->train(*trainSet, epochs);
+        if (precision > bestPrecision){
+            bestPrecision = precision;
+            bestIdx = i;
+        }
     }
-    // nu inteleg de ce nu am voie sa fac aceasta declaratie aici
-    FeedForwardNetwork network = buildStandardNetwork(noInputs, std::array<int, 2> numHidden, int noOutputs,
-        float learningRate, float batchSize, float weightDecay,
-        std::array<activationType, 3> activationFunctions, const Loss lossFun);
+    
+
+    std::ofstream bestConfig(path);
+    if (!bestConfig) {
+        std::cout << "Couldn't open " << path;
+    }
+
+    auto& bestNetwork = networkConfigs[bestIdx];
+
+    // uita-te in network.hpp
+    bestConfig << "learningRate: " << bestNetwork.
+
+
 }
 
 int main(){
@@ -48,6 +66,8 @@ int main(){
     activationType softmax = SOFTMAX;
 
     Loss lossFunction(crossEntropy);
+    
+    /*
     FeedForwardNetwork network(learningRate, weightDecay, lossFunction, batchSize);
 
     network.addLayer(784, 128, none); // input -> hidden 1
@@ -55,6 +75,7 @@ int main(){
     network.addLayer(128, 10, softmax); // hidden 2 -> output layer  
 
     network.train(*trainSet, epochs);
+    */
 
     /// TODO: add hyperparameter sweep using random search (si de pus in utils)
     // trebuie pentru asta sa creeze retele neuronale in mod dinamic, sa rulezi fiecare configuratie, si sa salvezi parametrii 'buni'
