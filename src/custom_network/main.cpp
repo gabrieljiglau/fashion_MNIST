@@ -4,48 +4,11 @@
 #include <torch/data/transforms/tensor.h>
 #include <torch/torch.h>
 #include <iostream>
-#include <optional>
-#include <fstream>
 #include "include/data_loaders.hpp"
 #include "include/activations.hpp"
 #include "include/losses.hpp"
-#include "include/utils.hpp"
+#include "sweep.cpp"
 #include "include/network.hpp"
-
-template<typename LoaderType>
-std::array<float, 4> hyperparameterSweep(LoaderType &trainSet, std::array<float, 4> learningRate, std::array<float, 3> weightDecay,
-                                         std::array<int, 4> batchSize, std::array<int, 3> numHidden, 
-                                         std::array<activationType, 3> activationFunctions, Loss lossFunction,
-                                         float percentage, int noInputs, int noOutputs, int epochs=10, std::string path="../models/hyperparams_custom.txt"){
-    
-    std::vector<std::unique_ptr<FeedForwardNetwork>> networkConfigs = networkSweep(noInputs, noOutputs, learningRate, weightDecay, batchSize,
-                                                                  numHidden, lossFunction, activationFunctions, percentage);
-    
-    int bestIdx = 0;
-    float bestPrecision = 0;
-    
-    for (int i = 0; i < networkConfigs.size(); i++){
-        auto& network = networkConfigs[i];
-        auto [precision, weights, biases] = network->train(*trainSet, epochs);
-        if (precision > bestPrecision){
-            bestPrecision = precision;
-            bestIdx = i;
-        }
-    }
-    
-
-    std::ofstream bestConfig(path);
-    if (!bestConfig) {
-        std::cout << "Couldn't open " << path;
-    }
-
-    auto& bestNetwork = networkConfigs[bestIdx];
-
-    // uita-te in network.hpp
-    bestConfig << "learningRate: " << bestNetwork.
-
-
-}
 
 int main(){
 
@@ -77,8 +40,6 @@ int main(){
     network.train(*trainSet, epochs);
     */
 
-    /// TODO: add hyperparameter sweep using random search (si de pus in utils)
-    // trebuie pentru asta sa creeze retele neuronale in mod dinamic, sa rulezi fiecare configuratie, si sa salvezi parametrii 'buni'
-
-    
+    /// TODO: mutat load mnist (functia) ca parametru in sweep()
+    hyperparameterSweep()
 }

@@ -53,7 +53,14 @@ class FeedForwardNetwork{
     std::tuple<float, std::vector<torch::Tensor>, std::vector<torch::Tensor>> train(LoaderType &trainSet, int epochs);
 
     /// TODO: add getters and setter for learning rate, batchSize, weight decay and hiddenSizes (? but this doesn't exist here)
+
+    int getMiniBatchSize(){return this->miniBatchSize;}
+    float getLearningRate(){return this->learningRate;}
+    float getWeightDecay(){return this->weightDecay;}
+    std::vector<int> getHiddenSizes() {std::vector<int> slice(this->layerSizes.begin() + 1, this->layerSizes.end() - 1); return slice;}
+
 };
+
 
 template<typename LoaderType>
 std::tuple<float, std::vector<torch::Tensor>, std::vector<torch::Tensor>> FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
