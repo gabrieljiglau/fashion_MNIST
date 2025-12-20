@@ -37,73 +37,75 @@ class FeedForwardNetwork{
 
     void addLayer(const int numNeurons1, const int numNeurons2, std::optional<activationType> actName=std::nullopt);
     
-
-    // functia asta ar trebui sa fie 'private'
     std::vector<torch::Tensor> forward(torch::Tensor xBatch);
 
     void backward(torch::Tensor xBatch, torch::Tensor yOneHot, std::vector<torch::Tensor> activations, int batchSize);
 
-    void predict(torch::Tensor xTest);
+    template<typename LoaderType>
+    std::tuple<float, std::vector<torch::Tensor>, std::vector<torch::Tensor>> fit(LoaderType &target, std::string mode, int epochs = 0);
+
 
     static FeedForwardNetwork buildStandardNetwork(int noInputs, std::array<int, 2> numHidden, int noOutputs,
-                                            float learningRate, float batchSize, float weightDecay,
-                                            std::array<activationType, 3> activationFunctions, const Loss lossFun);
+                                                  float learningRate, float batchSize, float weightDecay,
+                                                  std::array<activationType, 3> activationFunctions, const Loss lossFun);
 
-    template<typename LoaderType>
-    std::tuple<float, std::vector<torch::Tensor>, std::vector<torch::Tensor>> train(LoaderType &trainSet, int epochs);
-
-    /// TODO: add getters and setter for learning rate, batchSize, weight decay and hiddenSizes (? but this doesn't exist here)
 
     int getMiniBatchSize(){return this->miniBatchSize;}
     float getLearningRate(){return this->learningRate;}
     float getWeightDecay(){return this->weightDecay;}
     std::vector<int> getHiddenSizes() {std::vector<int> slice(this->layerSizes.begin() + 1, this->layerSizes.end() - 1); return slice;}
 
+    void setWeights(std::vector<torch::Tensor> savedWeights) {this->weights = savedWeights;}
+    void setBiases(std::vector<torch::Tensor> savedBiases) {this->biases = savedBiases;}
+
 };
 
 
 template<typename LoaderType>
-std::tuple<float, std::vector<torch::Tensor>, std::vector<torch::Tensor>> FeedForwardNetwork::train(LoaderType &trainSet, int epochs){
+std::tuple<float, std::vector<torch::Tensor>, std::vector<torch::Tensor>> FeedForwardNetwork::fit(LoaderType &target, std::string mode, int epochs){
         
-    assert(checkModel() == true);
+    if (mode == "train"){
+        assert(checkModel() == true);
 
-    // initialize the layers
-    for (int i = 0; i < this->weights.size(); i++){
-
-        int numNeurons1 = this->weights[i].size(0);
-        int numNeurons2 = this->weights[i].size(1);
-
-        bool isHidden = false;
-        if (i != 0 || i != this->weights.size() - 1){
-            isHidden = true;
-        }
-            
-        auto [newWeights, newBiases] = heInitialization(numNeurons1, numNeurons2, isHidden);
-        this->weights[i] = newWeights;
-        this->biases[i] = newBiases;
-
+        // initialize the layers
+        for (int i = 0; i < this->weights.size(); i++){
+    
+            int numNeurons1 = this->weights[i].size(0);
+            int numNeurons2 = this->weights[i].size(1);
+    
+            bool isHidden = true;    
+                
+            auto [newWeights, newBiases] = heInitialization(numNeurons1, numNeurons2, isHidden);
+            this->weights[i] = newWeights;
+            this->biases[i] = newBiases;
+    
+        }    
     }
 
     float loss = 0;
-    int batchNumber = 0;
 
     int totalInstances = 0;
     int correctLabels = 0;
     float accuracy = 0;
+
+    if (mode == "validate"){
+        epochs = 1;
+    }
 
     for (int epoch = 0; epoch < epochs; epoch++){
 
         std::cout << "Epoch " << epoch + 1 << " ====> ";
 
         float epochLoss = 0;
+        int batchNumber = 0;
         torch::Tensor yOneHot;
-        for (auto &batch: trainSet){
+        for (auto &batch: target){
 
             batchNumber += 1;
 
-            torch::Tensor xTrain = batch.data; // [batch_size, no_RGB_channels, img_height, img_width]
-            xTrain = xTrain.to(torch::kFloat64).flatten(1); // [batch_size, img_height X img_width
-            totalInstances += xTrain.size(1);
+            torch::Tensor xTrain = batch.data; // [batch_size, RGB_channels, img_height, img_width]
+            xTrain = xTrain.to(torch::kFloat64).flatten(1); // [batch_size, img_height X img_width]
+            totalInstances += xTrain.size(0);
         
             torch::Tensor yTrain = batch.target;
             yTrain = yTrain.to(torch::kFloat64);
@@ -113,8 +115,10 @@ std::tuple<float, std::vector<torch::Tensor>, std::vector<torch::Tensor>> FeedFo
 
             torch::Tensor lastActivation = activations[activations.size() - 1];
             correctLabels += checkPredictions(lastActivation, yTrain);
-    
-            backward(xTrain, yOneHot, activations, xTrain.size(0));
+            
+            if (mode == "train"){
+                backward(xTrain, yOneHot, activations, xTrain.size(0));
+            }
 
             epochLoss += this->lossFunction.totalLoss(lastActivation, yOneHot);
         }

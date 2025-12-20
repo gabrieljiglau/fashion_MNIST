@@ -11,7 +11,7 @@ bool contains(std::vector<T> &vector, T &toFind){
 }
 
 static std::vector<FeedForwardNetwork> networkPermutations(int noInputs, int noOutputs, std::array<float, 4> learningRate, 
-                                                             std::array<float, 3> weightDecay, std::array<int, 4> batchSize, std::array<int, 3> numHidden, 
+                                                             std::array<float, 3> weightDecay, std::array<int, 4> batchSize, std::array<int, 4> numHidden, 
                                                              Loss lossFunction, std::array<activationType, 3> activations, float percentage){
     
     // use randomized search (percentage * the complete search-space)
@@ -67,28 +67,34 @@ static std::vector<FeedForwardNetwork> networkPermutations(int noInputs, int noO
 }
 
 
-/// TODO: utilizat aici function templates, pt ca altfel nu poti sa dai ca parametru 'batch size'
-template<typename LoaderType>
-void hyperparameterSweep(LoaderType &trainSet, std::array<float, 4> learningRate, std::array<float, 3> weightDecay,
-                                         std::array<int, 4> batchSize, std::array<int, 3> numHidden, 
-                                         std::array<activationType, 3> activationFunctions, Loss lossFunction,
-                                         float percentage, int noInputs, int noOutputs, int epochs=10, std::string path="../models/hyperparams_custom.csv"){
+template<typename Function>
+void hyperparameterSweep(Function mnistLoader, std::string dataPath, const int numWorkers,
+                        std::array<float, 4> learningRate, std::array<float, 3> weightDecay,
+                        std::array<int, 4> batchSize, std::array<int, 4> numHidden, 
+                        std::array<activationType, 3> activationFunctions, Loss lossFunction,
+                        float percentage, int noInputs, int noOutputs, int epochs, std::string path){
     
     std::vector<FeedForwardNetwork> networkConfigs = networkPermutations(noInputs, noOutputs, learningRate, weightDecay, batchSize,
                                                                   numHidden, lossFunction, activationFunctions, percentage);
     
     int bestIdx = 0;
     float bestPrecision = 0;
-    
+
     for (int i = 0; i < networkConfigs.size(); i++){
+
+        std::cout << "Now at configuration " << i + 1 << std::endl;
+
         auto& network = networkConfigs[i];
-        auto [precision, weights, biases] = network.train(*trainSet, epochs);
+        auto trainSet = mnistLoader(dataPath, network.getMiniBatchSize(), numWorkers);
+        auto [precision, weights, biases] = network.fit(*trainSet, epochs);
+
         if (precision > bestPrecision){
             bestPrecision = precision;
             bestIdx = i;
         }
     }
     
+    std::cout << "best precision: " << bestPrecision << std::endl;
 
     std::ofstream bestPath(path);
     if (!bestPath) {
@@ -98,6 +104,8 @@ void hyperparameterSweep(LoaderType &trainSet, std::array<float, 4> learningRate
 
     auto& bestNetwork = networkConfigs[bestIdx];
 
-    bestPath << bestNetwork.getLearningRate() << "," << bestNetwork.getHiddenSizes() << bestNetwork.getMiniBatchSize() << ",";
+    bestPath << bestNetwork.getLearningRate() << "," << bestNetwork.getHiddenSizes() << "," << bestNetwork.getMiniBatchSize() << ",";
     bestPath << bestNetwork.getWeightDecay();
+
+    std::cout << "Hyperparameters written successfully to " << path << std::endl;
 }
