@@ -82,7 +82,8 @@ void FeedForwardNetwork::addLayer(const int numNeurons1, const int numNeurons2, 
 
 std::vector<torch::Tensor> FeedForwardNetwork::forward(torch::Tensor xBatch){
 
-    // contains both the preactivation, as well as the activation itself, that's why the size is numLayers + 1
+    // this vector contains both the preactivation, as well as the activation itself
+    //  that's why the size is set to numLayers + 1
     std::vector<torch::Tensor> activations(this->numLayers + 1);
 
     // layer 0: do nothing  

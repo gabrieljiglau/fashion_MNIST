@@ -110,9 +110,9 @@ std::tuple<float, std::vector<torch::Tensor>, std::vector<torch::Tensor>> FeedFo
             torch::Tensor yTrain = batch.target;
             yTrain = yTrain.to(torch::kFloat64);
             yOneHot = oneHotEncode(yTrain, 10); // of shape [batch_size, num_classes=10]
-        
+            
             std::vector<torch::Tensor> activations = forward(xTrain);
-
+            
             torch::Tensor lastActivation = activations[activations.size() - 1];
             correctLabels += checkPredictions(lastActivation, yTrain);
             

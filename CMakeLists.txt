@@ -6,9 +6,13 @@ set(CMAKE_PREFIX_PATH "$ENV{HOME}/libs/libtorch")
 
 find_package(Torch REQUIRED)
 
-add_executable(fashion_MNIST src/custom_network/main.cpp src/custom_network/activations.cpp 
-              src/custom_network/losses.cpp src/custom_network/utils.cpp src/custom_network/network.cpp)
+add_subdirectory(src/custom_network)
+add_subdirectory(src/libtorch)
 
-target_link_libraries(fashion_MNIST "${TORCH_LIBRARIES}")
+add_executable(fashion_MNIST src/apps/vanilla_main.cpp)
+target_link_libraries(fashion_MNIST custom_network)
+
+add_executable(torch_only src/apps/torch_main.cpp)
+target_link_libraries(torch_only libtorch)
 
 set_property(TARGET fashion_MNIST PROPERTY CXX_STANDARD 17)
