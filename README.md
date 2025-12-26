@@ -45,7 +45,7 @@ testing: Prediction accuracy 86.58%
 
 ## Libtorch
 
-The same task, but this time is uses predefined functions (i.e. autodifferentiation) from the libtorch API.
+The same task, but this time it uses predefined functions (i.e. autodifferentiation, loss functions, optimizers) from the libtorch API.
 
 Results: 
 ```
