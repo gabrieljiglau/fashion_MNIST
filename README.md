@@ -49,17 +49,22 @@ The same task, but this time is uses predefined functions (i.e. autodifferentiat
 
 Results: 
 ```
-training: to add
-testing: to add
+training: Prediction accuracy 96.4083%
+testing: Prediction accuracy 88.93%    # a little overfit
 ```
-
-In order to run the project, from root:
+## Run the project
+from root: 
 ```
+# for custom_network module
 export DATA_PATH=fullPath/To/fashion_MNIST/data/
 export MODEL_DIR=fullPath/To/fashion_MNIST/models/
-cmake --build fashion_MNIST
+cmake --build build
+./build/fashion_MNIST
+```
 
-./build/fashion_MNIST        # for custom_network module
-
-./build/libtorch             # for the libtorch module 
+```
+ # for the libtorch module 
+ export DATA_PATH=fullPath/To/fashion_MNIST/data/
+cmake --build build
+./build/torch_only 
 ```

@@ -25,7 +25,7 @@ class TorchNetwork: public torch::nn::Module{
         // shape(xBatch) = [batch_size, noFeatures/numOutputNeurons];
         xBatch = torch::relu(this->layers[0]->forward(xBatch));
         xBatch = torch::relu(this->layers[1]->forward(xBatch));
-        xBatch = torch::softmax(this->layers[2]->forward(xBatch), 1);
+        xBatch = torch::log_softmax(this->layers[2]->forward(xBatch), 1);
 
         return xBatch;
     }

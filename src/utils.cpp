@@ -1,4 +1,4 @@
-#include "include/utils.hpp"
+#include "custom_network/include/utils.hpp"
 
 torch::Tensor lossWeights(torch::Tensor lossNext, torch::Tensor weightsNext, torch::Tensor activationDerivative){
 

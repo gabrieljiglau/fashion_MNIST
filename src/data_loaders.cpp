@@ -1,4 +1,3 @@
-#pragma once
 #include <torch/data/dataloader.h>
 #include <torch/data/dataloader_options.h>
 #include <torch/torch.h>

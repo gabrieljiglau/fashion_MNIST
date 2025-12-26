@@ -1,7 +1,9 @@
 {
 	"InstallScripts" : 
 	[
-		"/home/gabriel/Documents/HolyC/fashion_MNIST/build/cmake_install.cmake"
+		"/home/gabriel/Documents/HolyC/fashion_MNIST/build/cmake_install.cmake",
+		"/home/gabriel/Documents/HolyC/fashion_MNIST/build/src/custom_network/cmake_install.cmake",
+		"/home/gabriel/Documents/HolyC/fashion_MNIST/build/src/libtorch/cmake_install.cmake"
 	],
 	"Parallel" : false
 }

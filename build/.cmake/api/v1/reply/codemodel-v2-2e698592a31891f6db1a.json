@@ -1,0 +1,212 @@
+{
+	"configurations" : 
+	[
+		{
+			"abstractTargets" : 
+			[
+				{
+					"directoryIndex" : 0,
+					"id" : "c10::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-c10-Debug-9288eef53b4fb142f7d3.json",
+					"name" : "c10",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "caffe2::mkl::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-caffe2__mkl-Debug-89e49ddb07dab30f16e9.json",
+					"name" : "caffe2::mkl",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "caffe2::mkldnn::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-caffe2__mkldnn-Debug-8c48e2d272de903277a2.json",
+					"name" : "caffe2::mkldnn",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "dummy::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-dummy-Debug-1036919ebea3deeeed36.json",
+					"name" : "dummy",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "headeronly::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-headeronly-Debug-8a038e8eb9f2b5580c78.json",
+					"name" : "headeronly",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "torch::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-torch-Debug-2e3e0e7a0bd1358c02e6.json",
+					"name" : "torch",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "torch_cpu::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-torch_cpu-Debug-511d9241ffbee28c33d3.json",
+					"name" : "torch_cpu",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "torch_cpu_library::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-torch_cpu_library-Debug-dea9cb31648ba018489d.json",
+					"name" : "torch_cpu_library",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "torch_library::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-torch_library-Debug-874462a9d2e2f9909ab4.json",
+					"name" : "torch_library",
+					"projectIndex" : 0
+				}
+			],
+			"directories" : 
+			[
+				{
+					"abstractTargetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8
+					],
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"jsonFile" : "directory-.-Debug-9ad1a58d4644cf6543fa.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "4.0"
+					},
+					"projectIndex" : 0,
+					"source" : ".",
+					"targetIndexes" : 
+					[
+						1,
+						3
+					]
+				},
+				{
+					"build" : "src/custom_network",
+					"jsonFile" : "directory-src.custom_network-Debug-953f24e68892bda37624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "4.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "src/custom_network",
+					"targetIndexes" : 
+					[
+						0
+					]
+				},
+				{
+					"build" : "src/libtorch",
+					"jsonFile" : "directory-src.libtorch-Debug-46bd70591555431bfd29.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "4.0"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 0,
+					"source" : "src/libtorch",
+					"targetIndexes" : 
+					[
+						2
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"abstractTargetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3,
+						4,
+						5,
+						6,
+						7,
+						8
+					],
+					"directoryIndexes" : 
+					[
+						0,
+						1,
+						2
+					],
+					"name" : "fashion_MNIST",
+					"targetIndexes" : 
+					[
+						0,
+						1,
+						2,
+						3
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 1,
+					"id" : "custom_network::@abbc2ecd2173ebac04dc",
+					"jsonFile" : "target-custom_network-Debug-f22df4d0d0bf5af25aa4.json",
+					"name" : "custom_network",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "fashion_MNIST::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-fashion_MNIST-Debug-b452d1b413448d3f4d5c.json",
+					"name" : "fashion_MNIST",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "libtorch::@d9d8b93ea9aca3979940",
+					"jsonFile" : "target-libtorch-Debug-236768197cfc6733b5b2.json",
+					"name" : "libtorch",
+					"projectIndex" : 0
+				},
+				{
+					"directoryIndex" : 0,
+					"id" : "torch_only::@6890427a1f51a3e7e1df",
+					"jsonFile" : "target-torch_only-Debug-d0c4e1c5485328560fcb.json",
+					"name" : "torch_only",
+					"projectIndex" : 0
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/gabriel/Documents/HolyC/fashion_MNIST/build",
+		"source" : "/home/gabriel/Documents/HolyC/fashion_MNIST"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 9
+	}
+}

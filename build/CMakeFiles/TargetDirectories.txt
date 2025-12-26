@@ -1,3 +1,10 @@
 /home/gabriel/Documents/HolyC/fashion_MNIST/build/CMakeFiles/fashion_MNIST.dir
+/home/gabriel/Documents/HolyC/fashion_MNIST/build/CMakeFiles/torch_only.dir
 /home/gabriel/Documents/HolyC/fashion_MNIST/build/CMakeFiles/edit_cache.dir
 /home/gabriel/Documents/HolyC/fashion_MNIST/build/CMakeFiles/rebuild_cache.dir
+/home/gabriel/Documents/HolyC/fashion_MNIST/build/src/custom_network/CMakeFiles/custom_network.dir
+/home/gabriel/Documents/HolyC/fashion_MNIST/build/src/custom_network/CMakeFiles/edit_cache.dir
+/home/gabriel/Documents/HolyC/fashion_MNIST/build/src/custom_network/CMakeFiles/rebuild_cache.dir
+/home/gabriel/Documents/HolyC/fashion_MNIST/build/src/libtorch/CMakeFiles/libtorch.dir
+/home/gabriel/Documents/HolyC/fashion_MNIST/build/src/libtorch/CMakeFiles/edit_cache.dir
+/home/gabriel/Documents/HolyC/fashion_MNIST/build/src/libtorch/CMakeFiles/rebuild_cache.dir

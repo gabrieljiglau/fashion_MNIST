@@ -3,7 +3,7 @@
 #include <torch/data/transforms/stack.h>
 #include <torch/data/transforms/tensor.h>
 #include <torch/torch.h>
-#include "../custom_network/include/data_loaders.hpp"
+#include "../data_loaders.cpp"
 #include "../custom_network/include/activations.hpp"
 #include "../custom_network/include/losses.hpp"
 #include "../custom_network/sweep.cpp"
@@ -49,7 +49,7 @@ int main(){
     */
     
     // the parameters found from the sweep
-    FeedForwardNetwork network(0.1, 0.001, lossFunction, 16);
+    FeedForwardNetwork network(0.01, 0.001, lossFunction, 16);
 
     network.addLayer(784, 128, relu); // input -> hidden 1
     network.addLayer(128, 128, relu); // hidden 1 -> hidden 2

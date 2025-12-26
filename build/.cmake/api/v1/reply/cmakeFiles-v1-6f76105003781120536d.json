@@ -6,7 +6,7 @@
 		},
 		{
 			"isGenerated" : true,
-			"path" : "build/CMakeFiles/4.1.2/CMakeSystem.cmake"
+			"path" : "build/CMakeFiles/4.2.0/CMakeSystem.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -20,11 +20,11 @@
 		},
 		{
 			"isGenerated" : true,
-			"path" : "build/CMakeFiles/4.1.2/CMakeCCompiler.cmake"
+			"path" : "build/CMakeFiles/4.2.0/CMakeCCompiler.cmake"
 		},
 		{
 			"isGenerated" : true,
-			"path" : "build/CMakeFiles/4.1.2/CMakeCXXCompiler.cmake"
+			"path" : "build/CMakeFiles/4.2.0/CMakeCXXCompiler.cmake"
 		},
 		{
 			"isCMake" : true,
@@ -267,6 +267,12 @@
 		{
 			"isExternal" : true,
 			"path" : "/home/gabriel/libs/libtorch/share/cmake/Caffe2/Caffe2Targets-release.cmake"
+		},
+		{
+			"path" : "src/custom_network/CMakeLists.txt"
+		},
+		{
+			"path" : "src/libtorch/CMakeLists.txt"
 		}
 	],
 	"kind" : "cmakeFiles",
