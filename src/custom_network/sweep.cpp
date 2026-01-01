@@ -1,6 +1,9 @@
+#include "include/network.hpp"
 #include "include/network_builder.hpp"
 #include "include/losses.hpp"
 #include "include/activations.hpp"
+#include <memory>
+#include <optional>
 #include <random>
 #include <fstream>
 
@@ -11,11 +14,20 @@ bool contains(std::vector<T> &vector, T &toFind){
 }
 
 static std::vector<FeedForwardNetwork> networkPermutations(int noInputs, int noOutputs, std::array<float, 4> learningRate, 
-                                                             std::array<float, 3> weightDecay, std::array<int, 4> batchSize, std::array<int, 4> numHidden, 
-                                                             Loss lossFunction, std::array<activationType, 3> activations, float percentage){
+                                                             std::optional<std::array<float, 3>> weightDecay, std::array<int, 4> batchSize, std::array<int, 4> numHidden, 
+                                                             std::optional<Loss> lossFunction, std::optional<std::array<activationType, 3>> activations, float percentage){
     
+    bool useCustomNetwork = false;
+
     // use randomized search (percentage * the complete search-space)
-    int searchSpace = learningRate.size() * weightDecay.size() * batchSize.size() * numHidden.size() * numHidden.size();
+    int searchSpace = 0;
+    if (weightDecay.has_value()){
+        searchSpace = learningRate.size() * weightDecay.value().size() * batchSize.size() * numHidden.size() * numHidden.size();
+        useCustomNetwork = true;
+    } else {
+        searchSpace = learningRate.size() * batchSize.size() * numHidden.size() * numHidden.size();
+    }
+
     int usedSearchSpace = int(percentage * searchSpace);
 
     // avoid reevaluations
@@ -27,8 +39,19 @@ static std::vector<FeedForwardNetwork> networkPermutations(int noInputs, int noO
     std::uniform_int_distribution<> distribution1(0, 3); // for the hyperparameters that hold 4 values
     std::uniform_int_distribution<> distribution2(0, 2); // for those that hold 3 values
 
-    std::vector<FeedForwardNetwork> networksConfigurations;
-    NetworkBuilder builder;
+    /// TODO: in network_builder.hpp de initializat member_variables pt constructorul implicit
+    //        apoi evident reparat asta si testat mecanismul de sweep pentru ambele structuri de date
+
+    using NetworkConfig = std::variant<FeedForwardNetwork, std::shared_ptr<TorchNetwork>>;
+    // ceva similar si pentru NetworkBuilder
+    NetworkConfig networkType;
+    if (useCustomNetwork){
+        networkType = FeedForwardNetwork();
+    }
+    std::vector<NetworkConfig> networkConfigs;
+
+
+    NetworkBuilder<CustomBuilder> builder;
     while (usedPermutations.size() < usedSearchSpace){
 
         std::array<int, 5> currentPermutation;
@@ -43,11 +66,16 @@ static std::vector<FeedForwardNetwork> networkPermutations(int noInputs, int noO
         if (!contains(usedPermutations, currentPermutation)){
             float lr = learningRate[currentPermutation[0]];
             float bs = batchSize[currentPermutation[1]];
-            float wd = weightDecay[currentPermutation[2]];
+
             int numNeurons1 = numHidden[currentPermutation[3]];
             int numNeurons2 = numHidden[currentPermutation[4]];
+
+
             
-            FeedForwardNetwork network = builder
+            if (useCustomNetwork){
+                float wd = weightDecay.value()[currentPermutation[2]];
+
+                FeedForwardNetwork network = builder
                                         .setInputs(noInputs)
                                         .setNumHidden(std::array<int, 2> {numNeurons1, numNeurons2})
                                         .setOutputs(noOutputs)
@@ -57,8 +85,21 @@ static std::vector<FeedForwardNetwork> networkPermutations(int noInputs, int noO
                                         .setActivations(activations)
                                         .setLossFunction(lossFunction)
                                         .build();
+               networksConfigurations.push_back(network);
+            } else {
+                
+                std::shared_ptr<TorchNetwork> = builder
+                                            .setInputs(noInputs)
+                                            .setNumHidden(std::array<int, 2> {numNeurons1, numNeurons2})
+                                            .setOutputs(noOutputs)
+                                            .setLearningRate(lr)
+                                            .setBatchSize(bs)
+                                            .build();
 
-            networksConfigurations.push_back(network);
+            }
+        
+
+            
             usedPermutations.push_back(currentPermutation);
         }
     }
