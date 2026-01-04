@@ -40,7 +40,7 @@ It also includes a function for selecting the best hyperparameters, using random
 Results:
 ```
 training: Prediction accuracy 88.6661%
-testing: Prediction accuracy 86.58%
+testing:  Prediction accuracy 86.58%
 ```
 
 ## Libtorch
@@ -49,8 +49,8 @@ The same task, but this time it uses predefined functions (i.e. autodifferentiat
 
 Results: 
 ```
-training: Prediction accuracy 96.4083%
-testing: Prediction accuracy 88.93%    # a little overfit
+training: Prediction accuracy 89.7%
+testing:  Prediction accuracy 87.42%
 ```
 ## Run the project
 from root: 
@@ -64,7 +64,7 @@ cmake --build build
 
 ```
  # for the libtorch module 
- export DATA_PATH=fullPath/To/fashion_MNIST/data/
+export DATA_PATH=fullPath/To/fashion_MNIST/data/
 cmake --build build
 ./build/torch_only 
 ```

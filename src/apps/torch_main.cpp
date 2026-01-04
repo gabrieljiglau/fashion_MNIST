@@ -72,7 +72,7 @@ int main(){
     // "/home/gabriel/Documents/HolyC/fashion_MNIST/data/";
     std::string dataPath = std::getenv("DATA_PATH"); // full path to the dataset
 
-    float learningRate = 0.01;
+    float learningRate = 0.001;
     int batchSize = 16;
     int numWorkers = 3;
 
